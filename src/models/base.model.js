@@ -1,6 +1,7 @@
 "use strict";
 
-const { ServerError } = require("../core/error.response");
+const { format } = require("mysql2");
+const { ServerError, BadRequestError } = require("../core/error.response");
 const { database } = require("../db/mysql.db");
 
 class BaseModel {
@@ -18,11 +19,11 @@ class BaseModel {
     }
 
     async insert(data) {
-        // const sql = `INSERT INTO ${BaseModel.tableName} SET ?`;
+        if (!data) throw new BadRequestError("Data not found!");
 
-        // return await this.db.execute(sql, [data]);
+        const sql = format(`INSERT INTO ?? SET ?`, [this.tableName, data]);
 
-        return data;
+        return await this.db.execute(sql);
     }
 
     insertBulk() {}
@@ -32,12 +33,14 @@ class BaseModel {
     delete() {}
 
     find() {
-        const sql = `SELECT * FROM ${BaseModel.tableName}`;
-
+        const sql = format(`SELECT * FROM ??`, [this.tableName]);
         return this.db.query(sql);
     }
 
-    findOne() {}
+    async findOne(conditions) {
+        const sql = format(`SELECT * FROM ?? WHERE ?`, [this.tableName, conditions]);
+        return await this.db.query(sql);
+    }
 
     count() {}
 }
