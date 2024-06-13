@@ -7,6 +7,7 @@ const { database } = require("../db/mysql.db");
 class BaseModel {
     constructor() {
         this.checkTableExists();
+        this.checkIdColumnExists();
         this.db = database;
     }
 
@@ -14,8 +15,16 @@ class BaseModel {
         return "";
     }
 
+    get idColumn() {
+        return "";
+    }
+
     checkTableExists() {
         if (!this.tableName) throw new ServerError("tableName not set");
+    }
+
+    checkIdColumnExists() {
+        if (!this.idColumn) throw new ServerError("idColumn not set");
     }
 
     async insert(data) {
@@ -28,18 +37,45 @@ class BaseModel {
 
     insertBulk() {}
 
-    update() {}
+    async updateById(id, data) {
+        if (!data || !id) throw new BadRequestError("Data not found!");
+
+        const sql = format(`UPDATE ?? SET ? WHERE ?? = ?`, [
+            this.tableName,
+            data,
+            this.idColumn,
+            id,
+        ]);
+
+        const [result] = await this.db.execute(sql);
+
+        return result;
+    }
+
+    async updateOne(conditions, data) {
+        if (!data || !conditions) throw new BadRequestError("Data not found!");
+
+        const sql = format(`UPDATE ?? SET ? WHERE ?`, [this.tableName, data, conditions]);
+
+        return await this.db.execute(sql);
+    }
 
     delete() {}
 
-    find() {
+    async find() {
         const sql = format(`SELECT * FROM ??`, [this.tableName]);
-        return this.db.query(sql);
+
+        const result = await this.db.query(sql);
+
+        return result;
     }
 
     async findOne(conditions) {
         const sql = format(`SELECT * FROM ?? WHERE ?`, [this.tableName, conditions]);
-        return await this.db.query(sql);
+
+        const [result] = await this.db.query(sql);
+
+        return result;
     }
 
     count() {}

@@ -33,4 +33,29 @@ const getInfoData = ({ fields = [], object = {} }) => {
     return _.pick(object, fields);
 };
 
-module.exports = { generateRandomString, getInfoData };
+/**
+ * Returns a new object that contains only the specified fields from the given object.
+ *
+ * @param {Object} row - The object to pick fields from.
+ * @param {Array} [selects=[]] - An array of field names to pick from the object. Defaults to an empty array.
+ * @return {Object} - A new object that contains only the specified fields from the given object.
+ */
+const mapperSelect = (row, selects = []) => {
+    if (!selects.length) return row;
+    return getInfoData({ fields: selects, object: row });
+};
+
+/**
+ * Returns a new object that contains only the specified fields from the given object.
+ *
+ * @param {Object} row - The object to pick fields from.
+ * @param {Array} [unselects=[]] - An array of field names to exclude from the new object. Defaults to an empty array.
+ * @return {Object} - A new object that contains only the specified fields from the given object, excluding the fields in the unselects array.
+ */
+const mapperUnSelect = (row, unselects = []) => {
+    if (!unselects.length) return user;
+    const selects = Object.keys(row).filter((key) => !unselects.includes(key));
+    return getInfoData({ fields: selects, object: row });
+};
+
+module.exports = { generateRandomString, getInfoData, mapperSelect, mapperUnSelect };

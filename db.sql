@@ -3,7 +3,7 @@
 
 USE `db_toeic_dev`;
 
-CREATE TABLE `users` (
+CREATE TABLE IF NOT EXISTS `users` (
     `user_id` int(11) NOT NULL AUTO_INCREMENT,
     `user_id_prefix` varchar(255) NOT NULL,
     `user_fullName` varchar(255) DEFAULT NULL,
@@ -20,3 +20,17 @@ CREATE TABLE `users` (
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `key_tokens` (
+    `key_id` VARCHAR(16) NOT NULL,
+    `user_id` INT NOT NULL,
+    `public_key` VARCHAR(255) NOT NULL,
+    `private_key` VARCHAR(255) NOT NULL,
+    `refresh_token_used` JSON DEFAULT '[]',
+    `refresh_token` VARCHAR(255) NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+    PRIMARY KEY (`key_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;

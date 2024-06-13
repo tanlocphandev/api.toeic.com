@@ -1,6 +1,5 @@
 "use strict";
 
-const { getInfoData } = require("../utils");
 const BaseModel = require("./base.model");
 const { USER_ROLES } = require("../constants");
 
@@ -38,47 +37,29 @@ class UserDao {
     }
 }
 
-const mapperSelect = (row, selects = []) => {
-    const user = new UserDao(row);
-
-    if (!selects.length) return user;
-
-    return getInfoData({ fields: selects, object: user });
-};
-
-const mapperUnSelect = (row, unselects = []) => {
-    const user = new UserDao(row);
-
-    if (!unselects.length) return user;
-
-    const selects = Object.keys(user).filter((key) => !unselects.includes(key));
-
-    return getInfoData({ fields: selects, object: user });
-};
-
 class UserModel extends BaseModel {
     get tableName() {
         return "users";
     }
 
-    static get idColumn() {
-        return "username";
+    get idColumn() {
+        return "user_id";
     }
 
     async findByEmail(email) {
-        const [response] = await this.findOne({ user_email: email });
+        const response = await this.findOne({ user_email: email });
 
         if (!response) return null;
 
-        return mapperSelect(response);
+        return new UserDao(response);
     }
 
     async checkExistRoleAdmin() {
-        const [response] = await this.findOne({ user_role: USER_ROLES.ADMIN });
+        const response = await this.findOne({ user_role: USER_ROLES.ADMIN });
 
         if (!response) return null;
 
-        return mapperSelect(response);
+        return new UserDao(response);
     }
 
     async find() {
@@ -86,9 +67,7 @@ class UserModel extends BaseModel {
 
         if (!response.length) return [];
 
-        return response.map((row) =>
-            mapperUnSelect(row, ["user_password", "user_salt", "user_verify"])
-        );
+        return response.map((row) => new UserDao(row));
     }
 }
 
