@@ -9,18 +9,20 @@ class BaseModel {
         this.db = database;
     }
 
-    static get tableName() {
+    get tableName() {
         return "";
     }
 
     checkTableExists() {
-        if (!BaseModel.tableName) throw new ServerError("tableName not set");
+        if (!this.tableName) throw new ServerError("tableName not set");
     }
 
     async insert(data) {
-        const sql = `INSERT INTO ${BaseModel.tableName} SET ?`;
+        // const sql = `INSERT INTO ${BaseModel.tableName} SET ?`;
 
-        return await this.db.execute(sql, [data]);
+        // return await this.db.execute(sql, [data]);
+
+        return data;
     }
 
     insertBulk() {}

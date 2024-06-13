@@ -19,6 +19,7 @@ class UserModel extends BaseModel {
         created_at,
         updated_at,
     }) {
+        super();
         this.user_id = user_id;
         this.user_id_prefix = user_id_prefix;
         this.user_name = user_name;
@@ -35,11 +36,31 @@ class UserModel extends BaseModel {
         this.updated_at = updated_at;
     }
 
-    create() {
-        return super.insert(this);
+    query() {
+        return {
+            user_id: this.user_id,
+            user_id_prefix: this.user_id_prefix,
+            user_name: this.user_name,
+            user_password: this.user_password,
+            user_salt: this.user_salt,
+            user_email: this.user_email,
+            user_sex: this.user_sex,
+            user_avatar: this.user_avatar,
+            user_role: this.user_role,
+            user_dob: this.user_dob,
+            user_status: this.user_status,
+            user_verify: this.user_verify,
+            created_at: this.created_at,
+            updated_at: this.updated_at,
+        };
     }
 
-    static get tableName() {
+    create() {
+        return this.query();
+        // return super.insert(this);
+    }
+
+    get tableName() {
         return "users";
     }
 
