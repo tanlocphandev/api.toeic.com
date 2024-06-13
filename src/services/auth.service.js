@@ -53,7 +53,7 @@ class AuthService {
         const result = await userModel.insert(userInsert);
 
         // Return id
-        return result[0].insertId;
+        return result?.insertId;
     }
 
     /**

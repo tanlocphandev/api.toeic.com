@@ -38,7 +38,7 @@ class Database {
         const connection = await this.pool.getConnection();
 
         try {
-            const result = await connection.execute(sql, params);
+            const [result] = await connection.execute(sql, params);
             return result;
         } catch (error) {
             console.log(`Error Database - execute:::`, error);
