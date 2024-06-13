@@ -4,9 +4,10 @@ const ReasonStatusCode = require("./reasonPhrases.core");
 const StatusCode = require("./statusCodes.core");
 
 class ErrorResponse extends Error {
-    constructor(message, status) {
+    constructor(message, status, details = null) {
         super(message);
         this.status = status;
+        this.details = details;
     }
 }
 
@@ -17,8 +18,12 @@ class ConflictRequestError extends ErrorResponse {
 }
 
 class BadRequestError extends ErrorResponse {
-    constructor(message = ReasonStatusCode.BAD_REQUEST, status = StatusCode.BAD_REQUEST) {
-        super(message, status);
+    constructor(
+        message = ReasonStatusCode.BAD_REQUEST,
+        status = StatusCode.BAD_REQUEST,
+        details = null
+    ) {
+        super(message, status, details);
     }
 }
 
