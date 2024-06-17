@@ -7,7 +7,7 @@ const {
     AuthFailureError,
 } = require("../core/error.response");
 const { userModel } = require("../models/user.model");
-const { generateRandomString, mapperSelect } = require("../utils");
+const { generateRandomString, mapperSelect, mapperUnSelect } = require("../utils");
 const bcrypt = require("bcrypt");
 const Crypto = require("../libs/crypto.lib");
 const { createTokenPair } = require("../helpers/auth.helper");
@@ -83,11 +83,11 @@ class AuthService {
         const publicKey = Crypto.generateKey();
 
         // Generate tokens
-        const tokens = await createTokenPair(
-            { userId: user.user_id, email },
+        const tokens = await createTokenPair({
+            payload: { userId: user.user_id, email },
             publicKey,
-            privateKey
-        );
+            privateKey,
+        });
 
         await KeyTokenService.create({
             userId: user.user_id,
@@ -100,6 +100,81 @@ class AuthService {
             user: mapperSelect(user, ["user_id", "user_fullName", "user_role"]),
             tokens,
         };
+    }
+
+    /**
+     * Refreshes the user's tokens and updates the key store.
+     *
+     * @param {Object} options - The options object.
+     * @param {Object} options.user - The user object.
+     * @param {string} options.user.email - The user's email.
+     * @param {string} options.user.userId - The user's ID.
+     * @param {Object} options.keyStore - The key store object.
+     * @param {string} options.keyStore.refresh_token_used - The refresh token used.
+     * @param {string} options.keyStore.key_id - The key ID.
+     * @param {string} options.keyStore.private_key - The private key.
+     * @param {string} options.keyStore.public_key - The public key.
+     * @param {string} options.keyStore.refresh_token - The refresh token.
+     * @param {string} options.refreshToken - The refresh token.
+     * @return {Promise<Object>} The updated user and tokens.
+     * @throws {AuthFailureError} If the refresh token is invalid or the user is not registered.
+     */
+    static async refresh({ user, keyStore, refreshToken }) {
+        const { email, userId } = user;
+        const { refresh_token_used, key_id, private_key, public_key, refresh_token } = keyStore;
+        const refreshTokenUsed = JSON.parse(refresh_token_used) || [];
+
+        // Check refreshToken used
+        if (refreshTokenUsed.includes(refreshToken)) {
+            // remove key store
+            await KeyTokenService.removeById(key_id);
+            throw new AuthFailureError("Some error, Please login again!");
+        }
+
+        // Check if refresh token invalid refresh token
+        if (refresh_token !== refreshToken) {
+            throw new AuthFailureError("Invalid refresh token!");
+        }
+
+        // Get user by email
+        const foundUser = await userModel.findByEmail(email);
+        if (!foundUser) {
+            throw new AuthFailureError("User not register!");
+        }
+
+        // Push refreshToken used
+        refreshTokenUsed.push(refreshToken);
+
+        // Create new tokens
+        const tokens = await createTokenPair({
+            payload: { userId, email },
+            publicKey: public_key,
+            privateKey: private_key,
+        });
+
+        // Update key store
+        const updateKeyStore = {
+            refresh_token_used: JSON.stringify(refreshTokenUsed),
+            refresh_token: tokens.refreshToken,
+        };
+
+        await KeyTokenService.updateById(key_id, updateKeyStore);
+
+        return {
+            user: { email, userId },
+            tokens,
+        };
+    }
+
+    static async getMe(userId) {
+        const user = await userModel.findById(userId);
+        return mapperUnSelect(user, ["user_password", "user_salt", "user_verify"]);
+    }
+
+    static async logout(keyStore) {
+        await KeyTokenService.removeById(keyStore.key_id);
+
+        return true;
     }
 }
 

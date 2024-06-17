@@ -15,6 +15,7 @@ const catchError = (err, _req, res, _next) => {
         code: statusCode,
         message: err.message || "Internal Server Error!",
         details: err?.details || null,
+        stack: err.stack,
     });
 };
 

@@ -3,4 +3,11 @@ const USER_ROLES = {
     USER: "user",
 };
 
-module.exports = { USER_ROLES };
+const HEADERS = {
+    AUTHORIZATION: "authorization",
+    REFRESH_TOKEN: "refresh-token",
+    X_CLIENT_ID: "x-client-id",
+    LOGOUT: "logout",
+};
+
+module.exports = { USER_ROLES, HEADERS };

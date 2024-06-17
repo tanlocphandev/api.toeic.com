@@ -54,6 +54,14 @@ class UserModel extends BaseModel {
         return new UserDao(response);
     }
 
+    async findById(userId) {
+        const response = await this.findOne({ user_id: userId });
+
+        if (!response) return null;
+
+        return new UserDao(response);
+    }
+
     async checkExistRoleAdmin() {
         const response = await this.findOne({ user_role: USER_ROLES.ADMIN });
 

@@ -62,6 +62,14 @@ class BaseModel {
 
     delete() {}
 
+    deleteOne(conditions) {
+        if (!conditions) throw new BadRequestError("Data not found!");
+
+        const sql = format(`DELETE FROM ?? WHERE ?`, [this.tableName, conditions]);
+
+        return this.db.execute(sql);
+    }
+
     async find() {
         const sql = format(`SELECT * FROM ??`, [this.tableName]);
 
