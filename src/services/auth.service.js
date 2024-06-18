@@ -1,11 +1,7 @@
 "use strict";
 
 const { USER_ROLES } = require("../constants");
-const {
-    ConflictRequestError,
-    BadRequestError,
-    AuthFailureError,
-} = require("../core/error.response");
+const { ConflictRequestError, AuthFailureError } = require("../core/error.response");
 const { userModel } = require("../models/user.model");
 const { generateRandomString, mapperSelect, mapperUnSelect } = require("../utils");
 const bcrypt = require("bcrypt");
@@ -38,7 +34,9 @@ class AuthService {
         ]);
 
         if (user) {
-            throw new ConflictRequestError("Email đã tồn tại!");
+            throw new ConflictRequestError("Email đã tồn tại!", undefined, {
+                email: "Email đã tồn tại",
+            });
         }
 
         // Hash password
@@ -84,7 +82,7 @@ class AuthService {
 
         // Generate tokens
         const tokens = await createTokenPair({
-            payload: { userId: user.user_id, email },
+            payload: { userId: user.user_id, email, role: user.user_role },
             publicKey,
             privateKey,
         });
@@ -120,7 +118,7 @@ class AuthService {
      * @throws {AuthFailureError} If the refresh token is invalid or the user is not registered.
      */
     static async refresh({ user, keyStore, refreshToken }) {
-        const { email, userId } = user;
+        const { email, userId, role } = user;
         const { refresh_token_used, key_id, private_key, public_key, refresh_token } = keyStore;
         const refreshTokenUsed = JSON.parse(refresh_token_used) || [];
 
@@ -147,7 +145,7 @@ class AuthService {
 
         // Create new tokens
         const tokens = await createTokenPair({
-            payload: { userId, email },
+            payload: { userId, email, role },
             publicKey: public_key,
             privateKey: private_key,
         });

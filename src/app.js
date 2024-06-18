@@ -6,8 +6,9 @@ const helmet = require("helmet");
 const morgan = require("morgan");
 const { initializeDB } = require("./db/mysql.db");
 const { catchNotFound, catchError } = require("./middleware/error.middleware");
+const corsConfig = require("./configs/cors.config");
 
-app.use(cors());
+app.use(cors(corsConfig));
 app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());

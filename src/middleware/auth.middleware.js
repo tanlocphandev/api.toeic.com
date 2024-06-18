@@ -51,18 +51,28 @@ const authentication = asyncHandler(async (req, res, next) => {
         const refreshToken = req.headers[HEADERS.REFRESH_TOKEN];
 
         // Verify the refresh token
-        const decode = await verifyToken(refreshToken, foundKeyStore.private_key);
+        try {
+            const decode = await verifyToken(refreshToken, foundKeyStore.private_key);
 
-        // Check if the user ID matches the client ID
-        if (decode.userId !== +clientId) {
-            throw new AuthFailureError("Invalid user!");
+            // Check if the user ID matches the client ID
+            if (decode.userId !== +clientId) {
+                throw new AuthFailureError("Invalid user!");
+            }
+
+            // Set the user, key store, and refresh token to the request object
+            req.user = decode;
+            req.keyStore = foundKeyStore;
+            req.refreshToken = refreshToken;
+            return next();
+        } catch (error) {
+            if (error.message === "jwt expired") {
+                // Remove all tokens
+                res.setHeader(HEADERS.SHOULD_LOGOUT, "true");
+                await KeyTokenService.removeById(foundKeyStore.key_id);
+            }
+
+            throw new AuthFailureError(error.message);
         }
-
-        // Set the user, key store, and refresh token to the request object
-        req.user = decode;
-        req.keyStore = foundKeyStore;
-        req.refreshToken = refreshToken;
-        return next();
     }
 
     // Check if the access token is missing

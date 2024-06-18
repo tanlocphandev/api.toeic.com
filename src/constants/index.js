@@ -8,6 +8,8 @@ const HEADERS = {
     REFRESH_TOKEN: "refresh-token",
     X_CLIENT_ID: "x-client-id",
     LOGOUT: "logout",
+    CONTENT_TYPE: "Content-Type",
+    SHOULD_LOGOUT: "x-required-logout",
 };
 
 module.exports = { USER_ROLES, HEADERS };

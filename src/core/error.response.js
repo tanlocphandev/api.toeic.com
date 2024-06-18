@@ -12,8 +12,8 @@ class ErrorResponse extends Error {
 }
 
 class ConflictRequestError extends ErrorResponse {
-    constructor(message = ReasonStatusCode.CONFLICT, status = StatusCode.CONFLICT) {
-        super(message, status);
+    constructor(message = ReasonStatusCode.CONFLICT, status = StatusCode.CONFLICT, details = null) {
+        super(message, status, details);
     }
 }
 
