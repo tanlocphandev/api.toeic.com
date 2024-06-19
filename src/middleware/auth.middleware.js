@@ -19,8 +19,6 @@ const authentication = asyncHandler(async (req, res, next) => {
     // Get the client ID from the headers
     const clientId = req.headers[HEADERS.X_CLIENT_ID]?.toString();
 
-    console.log(clientId);
-
     // Check if the client ID is missing
     if (!clientId) {
         throw new AuthFailureError(`Missing ${HEADERS.X_CLIENT_ID} headers!`);
@@ -31,6 +29,8 @@ const authentication = asyncHandler(async (req, res, next) => {
 
     // Check if the key store is not found
     if (!foundKeyStore) {
+        // Remove all tokens
+        res.setHeader(HEADERS.SHOULD_LOGOUT, "true");
         throw new AuthFailureError("Key store not found!");
     }
 
