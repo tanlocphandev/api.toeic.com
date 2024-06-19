@@ -4,14 +4,17 @@ const { userModel } = require("../models/user.model");
 const { mapperUnSelect } = require("../utils");
 
 class UserService {
-    static async find() {
-        const response = await userModel.find();
+    static async find(query) {
+        const { results, pagination } = await userModel.find(query);
 
-        if (!response.length) return [];
+        if (!results.length) return { results: [], pagination: pagination };
 
-        return response.map((row) =>
-            mapperUnSelect(row, ["user_password", "user_salt", "user_verify"])
-        );
+        return {
+            results: results.map((row) =>
+                mapperUnSelect(row, ["user_password", "user_salt", "user_verify"])
+            ),
+            pagination: pagination,
+        };
     }
 }
 

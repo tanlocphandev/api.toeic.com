@@ -5,9 +5,12 @@ const UserService = require("../services/user.service");
 
 class UserController {
     async find(req, res) {
+        const { results, pagination } = await UserService.find(req.query);
+
         return new OK({
             message: "Find user successfully",
-            metadata: await UserService.find(),
+            metadata: results,
+            options: pagination,
         }).send(res);
     }
 }

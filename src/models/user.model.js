@@ -2,6 +2,7 @@
 
 const BaseModel = require("./base.model");
 const { USER_ROLES } = require("../constants");
+const QueryHelper = require("../helpers/query.helper");
 
 class UserDao {
     constructor({
@@ -34,6 +35,29 @@ class UserDao {
         this.user_verify = user_verify;
         this.created_at = created_at;
         this.updated_at = updated_at;
+    }
+
+    static getInstance() {
+        if (!this.instance) {
+            this.instance = new this({
+                user_id: 1,
+                user_id_prefix: 1,
+                user_fullName: 1,
+                user_password: 1,
+                user_salt: 1,
+                user_email: 1,
+                user_sex: 1,
+                user_avatar: 1,
+                user_role: 1,
+                user_dob: 1,
+                user_status: 1,
+                user_verify: 1,
+                created_at: 1,
+                updated_at: 1,
+            });
+        }
+
+        return this.instance;
     }
 }
 
@@ -70,12 +94,32 @@ class UserModel extends BaseModel {
         return new UserDao(response);
     }
 
-    async find() {
-        const response = await super.find();
+    async find(query) {
+        const { limit, page, offset, query: _query, order } = QueryHelper.getPagination(query);
 
-        if (!response.length) return [];
+        // Check if exist query in request or not if exist in instance remove it
+        if (Object.keys(_query).length > 0) {
+            const instance = UserDao.getInstance();
 
-        return response.map((row) => new UserDao(row));
+            Object.keys(_query).forEach((key) => {
+                if (!Object.hasOwn(instance, key)) {
+                    delete _query[key];
+                }
+            });
+        }
+
+        const { totalPage, totalRow, data } = await this.findAndCountAll({
+            where: _query,
+            limit,
+            offset,
+            order,
+        });
+
+        if (!data.length) return { results: [], pagination: { totalPage, totalRow, page, limit } };
+
+        const results = data.map((row) => new UserDao(row));
+
+        return { results: results, pagination: { totalPage, totalRow, page, limit } };
     }
 }
 

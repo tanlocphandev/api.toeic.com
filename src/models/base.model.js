@@ -1,8 +1,9 @@
 "use strict";
 
-const { format } = require("mysql2");
+const { format, raw } = require("mysql2");
 const { ServerError, BadRequestError } = require("../core/error.response");
 const { database } = require("../db/mysql.db");
+const { query } = require("express");
 
 class BaseModel {
     constructor() {
@@ -76,6 +77,84 @@ class BaseModel {
         const result = await this.db.query(sql);
 
         return result;
+    }
+
+    async findAndCountAll({ where = {}, limit = 10, offset = 0, order = {} }) {
+        let baseQuery = `SELECT * FROM ??`;
+        let countQuery = `SELECT COUNT(*) as count FROM ??`;
+        const params = [this.tableName];
+        const paramsCount = [this.tableName];
+
+        if (Object.keys(where).length > 0) {
+            const { query: whereQuery, value } = this.buildWhereClause(where);
+            baseQuery = `${baseQuery} ${whereQuery}`;
+            countQuery = `${countQuery} ${whereQuery}`;
+            params.push(...value);
+            paramsCount.push(...value);
+        }
+
+        if (Object.keys(order).length > 0) {
+            params.push(order.key, raw(order.value));
+            baseQuery += ` ORDER BY ?? ?`;
+        }
+
+        params.push(limit, offset);
+        baseQuery += ` LIMIT ? OFFSET ?`;
+
+        const [[resultCount], result] = await Promise.all([
+            this.db.query(format(countQuery, paramsCount)),
+            this.db.query(format(baseQuery, params)),
+        ]);
+
+        const totalPage = Math.ceil(resultCount.count / limit);
+
+        return {
+            data: result,
+            totalRow: resultCount.count,
+            totalPage,
+        };
+    }
+
+    buildWhereClause(where) {
+        if (!Object.keys(where).length) return { query: "", value: null };
+
+        const { condition, newValue } = this.formatConditions(where);
+
+        return { query: `WHERE ${condition}`, value: newValue };
+    }
+
+    formatConditions(conditions) {
+        let newValue = [];
+
+        const condition = Object.entries(conditions)
+            .map(([key, value]) => {
+                const { condition, value: _value } = this.formatValue(value);
+
+                if (condition === "?") newValue = [...newValue, _value];
+
+                return `${key} ${condition === "?" ? `= ?` : condition}`;
+            })
+            .join(" AND ");
+
+        return { condition, newValue };
+    }
+
+    formatValue(inputValue) {
+        const value = String(inputValue)?.toLowerCase();
+
+        let condition = "";
+        let formattedValue = "";
+
+        if (value === "null" || value === "undefined") {
+            condition = "IS NULL";
+        } else if (value === "!null") {
+            condition = "IS NOT NULL";
+        } else {
+            condition = "?";
+            formattedValue = value;
+        }
+
+        return { condition, value: formattedValue };
     }
 
     async findOne(conditions) {

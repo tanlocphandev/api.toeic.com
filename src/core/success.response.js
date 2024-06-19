@@ -18,10 +18,12 @@ class SuccessResponse {
         statusCode = StatusCode.OK,
         reasonCode = ReasonStatusCode.OK,
         metadata = {},
+        options = {},
     }) {
         this.message = message ?? reasonCode;
         this.status = statusCode;
         this.metadata = metadata;
+        this.options = options;
     }
 
     /**
@@ -44,8 +46,8 @@ class SuccessResponse {
  * @param {Object} [options.metadata={}] - The metadata for the response.
  */
 class OK extends SuccessResponse {
-    constructor({ message = "", metadata = {} }) {
-        super({ message, metadata });
+    constructor({ message = "", metadata = {}, options = {} }) {
+        super({ message, metadata, options });
     }
 }
 
