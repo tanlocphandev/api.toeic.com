@@ -3,7 +3,7 @@
 const { format, raw } = require("mysql2");
 const { ServerError, BadRequestError } = require("../core/error.response");
 const { database } = require("../db/mysql.db");
-const { query } = require("express");
+const _ = require("lodash");
 
 class BaseModel {
     constructor() {
@@ -85,7 +85,7 @@ class BaseModel {
         const params = [this.tableName];
         const paramsCount = [this.tableName];
 
-        if (Object.keys(where).length > 0) {
+        if (!_.isEmpty(where)) {
             const { query: whereQuery, value } = this.buildWhereClause(where);
             baseQuery = `${baseQuery} ${whereQuery}`;
             countQuery = `${countQuery} ${whereQuery}`;
@@ -93,7 +93,7 @@ class BaseModel {
             paramsCount.push(...value);
         }
 
-        if (Object.keys(order).length > 0) {
+        if (!_.isEmpty(order)) {
             params.push(order.key, raw(order.value));
             baseQuery += ` ORDER BY ?? ?`;
         }
@@ -116,7 +116,7 @@ class BaseModel {
     }
 
     buildWhereClause(where) {
-        if (!Object.keys(where).length) return { query: "", value: null };
+        if (!_.isEmpty(where)) return { query: "", value: null };
 
         const { condition, newValue } = this.formatConditions(where);
 

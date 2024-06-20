@@ -3,6 +3,7 @@
 const BaseModel = require("./base.model");
 const { USER_ROLES } = require("../constants");
 const QueryHelper = require("../helpers/query.helper");
+const _ = require("lodash");
 
 class UserDao {
     constructor({
@@ -98,7 +99,7 @@ class UserModel extends BaseModel {
         const { limit, page, offset, query: _query, order } = QueryHelper.getPagination(query);
 
         // Check if exist query in request or not if exist in instance remove it
-        if (Object.keys(_query).length > 0) {
+        if (!_.isEmpty(_query)) {
             const instance = UserDao.getInstance();
 
             Object.keys(_query).forEach((key) => {

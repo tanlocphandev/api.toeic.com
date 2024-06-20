@@ -1,7 +1,5 @@
 "use strict";
 
-const { raw } = require("mysql2");
-
 class QueryHelper {
     static getPagination(query) {
         const page = parseInt(query.page) || 1;
