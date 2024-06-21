@@ -56,7 +56,9 @@ class BaseModel {
     async updateOne(conditions, data) {
         if (!data || !conditions) throw new BadRequestError("Data not found!");
 
-        const sql = format(`UPDATE ?? SET ? WHERE ?`, [this.tableName, data, conditions]);
+        const { query, value } = this.buildWhereClause(conditions);
+
+        const sql = format(`UPDATE ?? SET ? ${query}`, [this.tableName, data, ...value]);
 
         return await this.db.execute(sql);
     }
@@ -66,7 +68,9 @@ class BaseModel {
     deleteOne(conditions) {
         if (!conditions) throw new BadRequestError("Data not found!");
 
-        const sql = format(`DELETE FROM ?? WHERE ?`, [this.tableName, conditions]);
+        const { query, value } = this.buildWhereClause(conditions);
+
+        const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
 
         return this.db.execute(sql);
     }
@@ -158,7 +162,9 @@ class BaseModel {
     }
 
     async findOne(conditions) {
-        const sql = format(`SELECT * FROM ?? WHERE ?`, [this.tableName, conditions]);
+        const { query, value } = this.buildWhereClause(conditions);
+
+        const sql = format(`SELECT * FROM ?? ${query}`, [this.tableName, ...value]);
 
         const [result] = await this.db.query(sql);
 

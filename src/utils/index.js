@@ -1,6 +1,7 @@
 "use strict";
 
 const _ = require("lodash");
+const slugify = require("slugify");
 
 /**
  * Generates a random string of the specified length.
@@ -58,4 +59,50 @@ const mapperUnSelect = (row, unselects = []) => {
     return getInfoData({ fields: selects, object: row });
 };
 
-module.exports = { generateRandomString, getInfoData, mapperSelect, mapperUnSelect };
+/**
+ * Generates a slug from the given value.
+ *
+ * @param {string} value - The value to generate the slug from.
+ * @return {string} The generated slug.
+ */
+const generateSlug = (value) => {
+    return slugify(value, {
+        replacement: "-", // replace spaces with replacement character, defaults to `-`
+        remove: undefined, // remove characters that match regex, defaults to `undefined`
+        lower: true, // convert to lower case, defaults to `false`
+        strict: true, // strip special characters except replacement, defaults to `false`
+        locale: "vi", // language code of the locale to use
+        trim: true, // trim leading and trailing replacement chars, defaults to `true`
+    });
+};
+
+/**
+ * Filters out properties from the given fields object that are not present in the instance object.
+ *
+ * @param {Object} options - The options object.
+ * @param {Object} options.instance - The instance object to check against.
+ * @param {Object} [options.fields={}] - The fields object to filter.
+ * @return {Object} - The filtered fields object.
+ */
+const filterPropOutsideInstance = ({ instance, fields = {} }) => {
+    if (_.isEmpty(fields)) return {};
+
+    const _instance = instance.getInstance();
+
+    Object.keys(fields).forEach((key) => {
+        if (!Object.hasOwn(_instance, key)) {
+            delete fields[key];
+        }
+    });
+
+    return fields;
+};
+
+module.exports = {
+    generateRandomString,
+    getInfoData,
+    mapperSelect,
+    mapperUnSelect,
+    generateSlug,
+    filterPropOutsideInstance,
+};

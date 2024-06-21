@@ -2,8 +2,9 @@
 
 const BaseModel = require("./base.model");
 const { generateRandomString } = require("../utils");
+const TimestampModel = require("./timestamp.model");
 
-class KeyTokenDao {
+class KeyTokenDao extends TimestampModel {
     constructor({
         key_id,
         user_id,
@@ -14,14 +15,14 @@ class KeyTokenDao {
         created_at,
         updated_at,
     }) {
+        super({ created_at, updated_at });
+
         this.key_id = key_id;
         this.user_id = user_id;
         this.public_key = public_key;
         this.private_key = private_key;
         this.refresh_token_used = refresh_token_used;
         this.refresh_token = refresh_token;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
     }
 }
 

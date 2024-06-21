@@ -1,11 +1,13 @@
 "use strict";
 
 const BaseModel = require("./base.model");
+const TimestampModel = require("./timestamp.model");
 const { USER_ROLES } = require("../constants");
 const QueryHelper = require("../helpers/query.helper");
 const _ = require("lodash");
+const { filterPropOutsideInstance } = require("../utils");
 
-class UserDao {
+class UserDao extends TimestampModel {
     constructor({
         user_id,
         user_id_prefix,
@@ -22,6 +24,8 @@ class UserDao {
         created_at,
         updated_at,
     }) {
+        super({ created_at, updated_at });
+
         this.user_id = user_id;
         this.user_id_prefix = user_id_prefix;
         this.user_fullName = user_fullName;
@@ -34,8 +38,6 @@ class UserDao {
         this.user_dob = user_dob;
         this.user_status = user_status;
         this.user_verify = user_verify;
-        this.created_at = created_at;
-        this.updated_at = updated_at;
     }
 
     static getInstance() {
@@ -72,7 +74,7 @@ class UserModel extends BaseModel {
     }
 
     async findByEmail(email) {
-        const response = await this.findOne({ user_email: email });
+        const response = await super.findOne({ user_email: email });
 
         if (!response) return null;
 
@@ -80,7 +82,7 @@ class UserModel extends BaseModel {
     }
 
     async findById(userId) {
-        const response = await this.findOne({ user_id: userId });
+        const response = await super.findOne({ user_id: userId });
 
         if (!response) return null;
 
@@ -88,29 +90,21 @@ class UserModel extends BaseModel {
     }
 
     async checkExistRoleAdmin() {
-        const response = await this.findOne({ user_role: USER_ROLES.ADMIN });
+        const response = await super.findOne({ user_role: USER_ROLES.ADMIN });
 
         if (!response) return null;
 
         return new UserDao(response);
     }
 
-    async find(query) {
-        const { limit, page, offset, query: _query, order } = QueryHelper.getPagination(query);
+    async find(filters) {
+        const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
-        if (!_.isEmpty(_query)) {
-            const instance = UserDao.getInstance();
+        const where = filterPropOutsideInstance({ instance: UserDao, fields: query });
 
-            Object.keys(_query).forEach((key) => {
-                if (!Object.hasOwn(instance, key)) {
-                    delete _query[key];
-                }
-            });
-        }
-
-        const { totalPage, totalRow, data } = await this.findAndCountAll({
-            where: _query,
+        const { totalPage, totalRow, data } = await super.findAndCountAll({
+            where,
             limit,
             offset,
             order,
