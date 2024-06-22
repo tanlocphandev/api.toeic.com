@@ -8,7 +8,6 @@ const crypto = require("node:crypto");
  * Generates a random string of the specified length.
  *
  * @param {number} [length=12] - The length of the random string to generate. Defaults to 12.
- * @param {boolean} [isLowerCase=false] - Whether to convert the generated string to lowercase. Defaults to false.
  * @return {string} - The generated random string.
  */
 const generateRandomString = (length = 12) => {
