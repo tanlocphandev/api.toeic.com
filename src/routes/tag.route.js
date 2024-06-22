@@ -5,7 +5,7 @@ const route = express.Router();
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const tagController = require("../controllers/tag.controller");
 const { createTagSchema } = require("../schemas/tag.schema");
-const validateData = require("../middleware/validate.middleware");
+const { validateData } = require("../middleware/validate.middleware");
 
 route.post(`/`, validateData(createTagSchema), asyncHandler(tagController.create));
 route.get(`/`, asyncHandler(tagController.find));

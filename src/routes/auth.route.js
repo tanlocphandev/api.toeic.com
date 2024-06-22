@@ -4,7 +4,7 @@ const express = require("express");
 const route = express.Router();
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const authController = require("../controllers/auth.controller");
-const validateData = require("../middleware/validate.middleware");
+const { validateData } = require("../middleware/validate.middleware");
 const { registerSchema, loginSchema } = require("../schemas/auth.schema");
 const { authentication } = require("../middleware/auth.middleware");
 
