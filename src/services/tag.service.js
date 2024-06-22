@@ -21,7 +21,9 @@ class TagService {
             tag_id: generateRandomString(16, true),
         };
 
-        return await tagModel.insert(payload);
+        const newTag = await tagModel.insert(payload);
+
+        return newTag.affectedRows > 0 ? true : false;
     }
 
     static async update(tagId, { tagName }) {

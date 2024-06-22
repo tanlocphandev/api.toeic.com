@@ -48,7 +48,7 @@ class BaseModel {
             id,
         ]);
 
-        const [result] = await this.db.execute(sql);
+        const result = await this.db.execute(sql);
 
         return result;
     }
@@ -120,7 +120,7 @@ class BaseModel {
     }
 
     buildWhereClause(where) {
-        if (!_.isEmpty(where)) return { query: "", value: null };
+        if (_.isEmpty(where)) return { query: "", value: null };
 
         const { condition, newValue } = this.formatConditions(where);
 

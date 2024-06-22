@@ -1,7 +1,7 @@
 "use strict";
 
 const QueryHelper = require("../helpers/query.helper");
-const { generateSlug } = require("../utils");
+const { generateSlug, filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
 const TimestampModel = require("./timestamp.model");
 

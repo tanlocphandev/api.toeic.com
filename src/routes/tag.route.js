@@ -9,7 +9,7 @@ const validateData = require("../middleware/validate.middleware");
 
 route.post(`/`, validateData(createTagSchema), asyncHandler(tagController.create));
 route.get(`/`, asyncHandler(tagController.find));
-route.patch(`/:id`, validateData(createTagSchema), asyncHandler(tagController.update));
-route.get("/:id", asyncHandler(tagController.findById));
+route.patch(`/:tagId`, validateData(createTagSchema), asyncHandler(tagController.update));
+route.get("/:tagId", asyncHandler(tagController.findById));
 
 module.exports = route;
