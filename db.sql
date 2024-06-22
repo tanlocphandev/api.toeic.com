@@ -53,3 +53,11 @@ CREATE TABLE IF NOT EXISTS `parts` (
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`part_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `question_types` (
+    `type_id` INT NOT NULL AUTO_INCREMENT,
+    `type_name` VARCHAR(255) NOT NULL UNIQUE,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`type_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
