@@ -2,6 +2,7 @@
 
 const _ = require("lodash");
 const slugify = require("slugify");
+const crypto = require("node:crypto");
 
 /**
  * Generates a random string of the specified length.
@@ -10,16 +11,8 @@ const slugify = require("slugify");
  * @param {boolean} [isLowerCase=false] - Whether to convert the generated string to lowercase. Defaults to false.
  * @return {string} - The generated random string.
  */
-const generateRandomString = (length = 12, isLowerCase = false) => {
-    let result = "";
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    const charactersLength = characters.length;
-
-    for (let i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-
-    return isLowerCase ? result.toLocaleLowerCase() : result;
+const generateRandomString = (length = 12) => {
+    return crypto.randomBytes(length).toString("hex");
 };
 
 /**

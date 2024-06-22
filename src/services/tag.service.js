@@ -18,7 +18,7 @@ class TagService {
         const payload = {
             tag_name: tagName,
             tag_slug: generateSlug(tagName),
-            tag_id: generateRandomString(16, true),
+            tag_id: generateRandomString(16),
         };
 
         const newTag = await tagModel.insert(payload);
@@ -44,7 +44,7 @@ class TagService {
         const payload = tags.map((tag) => [
             tag.tagName,
             generateSlug(tag.tagName),
-            generateRandomString(16, true),
+            generateRandomString(16),
         ]);
 
         const newTags = await tagModel.insertBulk({

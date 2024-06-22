@@ -45,7 +45,7 @@ class AuthService {
         userInsert["user_role"] = userAdminExist ? USER_ROLES.USER : USER_ROLES.ADMIN;
 
         // Generate id
-        userInsert["user_id_prefix"] = generateRandomString(16, true);
+        userInsert["user_id_prefix"] = generateRandomString(16);
 
         // Insert user
         const result = await userModel.insert(userInsert);

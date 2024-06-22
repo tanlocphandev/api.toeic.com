@@ -44,3 +44,12 @@ CREATE TABLE IF NOT EXISTS `tags` (
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`tag_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `parts` (
+    `part_id` VARCHAR(16) NOT NULL,
+    `part_name` VARCHAR(255) NOT NULL UNIQUE,
+    `part_slug` VARCHAR(255) NOT NULL UNIQUE,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    PRIMARY KEY (`part_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
