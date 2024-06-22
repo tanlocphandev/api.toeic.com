@@ -2,7 +2,7 @@
 
 const _ = require("lodash");
 const slugify = require("slugify");
-const crypto = require("node:crypto");
+const Crypto = require("../libs/crypto.lib");
 
 /**
  * Generates a random string of the specified length.
@@ -11,7 +11,7 @@ const crypto = require("node:crypto");
  * @return {string} - The generated random string.
  */
 const generateRandomString = (length = 12) => {
-    return crypto.randomBytes(length).toString("hex");
+    return Crypto.generateKey(length);
 };
 
 /**

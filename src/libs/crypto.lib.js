@@ -3,8 +3,8 @@
 const crypto = require("node:crypto");
 
 class Crypto {
-    static generateKey() {
-        return crypto.randomBytes(64).toString("hex");
+    static generateKey(size = 64) {
+        return crypto.randomBytes(size).toString("hex");
     }
 }
 
