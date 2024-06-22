@@ -4,6 +4,15 @@ const { OK, Created } = require("../core/success.response");
 const TagService = require("../services/tag.service");
 
 class TagController {
+    async createMultipleWithUploadFile(req, res) {
+        const { tags = [] } = req.body;
+        const createdTags = await TagService.createMultipleWithUploadFile(tags);
+        return new Created({
+            message: "Create tags successfully",
+            metadata: createdTags,
+        }).send(res);
+    }
+
     async create(req, res) {
         const { tagName } = req.body;
         const tag = await TagService.create({ tagName });

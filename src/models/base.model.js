@@ -36,7 +36,13 @@ class BaseModel {
         return await this.db.execute(sql);
     }
 
-    insertBulk() {}
+    async insertBulk({ data = [], fields = [] }) {
+        if (!data.length || !fields.length) throw new BadRequestError("Data not found!");
+
+        const sql = format(`INSERT INTO ?? (??) VALUES ?`, [this.tableName, fields, data]);
+
+        return await this.db.execute(sql);
+    }
 
     async updateById(id, data) {
         if (!data || !id) throw new BadRequestError("Data not found!");
@@ -75,8 +81,17 @@ class BaseModel {
         return this.db.execute(sql);
     }
 
-    async find() {
-        const sql = format(`SELECT * FROM ??`, [this.tableName]);
+    async find(conditions = null) {
+        let query = `SELECT * FROM ??`;
+        let params = [this.tableName];
+
+        if (conditions) {
+            const { query: whereQuery, value } = this.buildWhereClause(conditions);
+            query = `${query} ${whereQuery}`;
+            params.push(...value);
+        }
+
+        const sql = format(query, params);
 
         const result = await this.db.query(sql);
 
@@ -134,7 +149,8 @@ class BaseModel {
             .map(([key, value]) => {
                 const { condition, value: _value } = this.formatValue(value);
 
-                if (condition === "?") newValue = [...newValue, _value];
+                if (condition === "?" || typeof value === "object")
+                    newValue = [...newValue, _value];
 
                 return `${key} ${condition === "?" ? `= ?` : condition}`;
             })
@@ -144,10 +160,19 @@ class BaseModel {
     }
 
     formatValue(inputValue) {
-        const value = String(inputValue)?.toLowerCase();
-
         let condition = "";
         let formattedValue = "";
+
+        if (typeof inputValue === "object") {
+            Object.entries(inputValue).forEach(([key, value]) => {
+                condition = key;
+                formattedValue = value;
+            });
+
+            return { condition, value: formattedValue };
+        }
+
+        const value = String(inputValue)?.toLowerCase();
 
         if (value === "null" || value === "undefined") {
             condition = "IS NULL";

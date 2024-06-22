@@ -4,6 +4,7 @@ const { ZodError } = require("zod");
 const { ServerError, BadRequestError, NotfoundRequestError } = require("../core/error.response");
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const FileLib = require("../libs/file.lib");
+const XLSX = require("../libs/xlsx.lib");
 
 const validateData = (schema) => {
     return asyncHandler(async (req, _, next) => {
@@ -54,8 +55,39 @@ const validateFileNotFound = (message = "File not found") => {
     });
 };
 
+const validateFieldsInFile = ({ fields = [], keyBody = "body" }) => {
+    if (!fields.length) return (req, _, next) => next();
+
+    return asyncHandler(async (req, _, next) => {
+        const { file } = req;
+
+        const response = await XLSX.readAsync(file.path);
+
+        if (!response.length) throw new NotfoundRequestError("Vui lòng không upload file rỗng!");
+
+        const responseLength = response.length;
+
+        for (let index = 0; index < responseLength; index++) {
+            const row = response[index];
+
+            console.log(`row check validateFieldsInFile [file validate.middleware]:::`, row);
+
+            Object.keys(row).forEach((key) => {
+                if (!fields.includes(key))
+                    throw new BadRequestError(`Chỉ cho phép các các cột ${fields.join(", ")}!`);
+            });
+        }
+
+        // set file to request body
+        req.body[keyBody] = response;
+
+        next();
+    });
+};
+
 module.exports = {
     validateData,
     validateExtFile,
     validateFileNotFound,
+    validateFieldsInFile,
 };

@@ -48,6 +48,23 @@ class TagModel extends BaseModel {
         return new TagDao(response);
     }
 
+    async findByNameMultiple(tagNames = []) {
+        const tagNamesParser = tagNames.map(({ tagName }) => tagName);
+
+        if (!tagNamesParser.length) return [];
+
+        const tagSlugs = tagNamesParser.map((name) => generateSlug(name));
+
+        const response = await super.find({
+            tag_name: { "IN (?)": tagNamesParser },
+            tag_slug: { "IN (?)": tagSlugs },
+        });
+
+        if (!response.length) return [];
+
+        return response.map((row) => new TagDao(row));
+    }
+
     async findById(tagId) {
         const response = await super.findOne({ tag_id: tagId });
 
