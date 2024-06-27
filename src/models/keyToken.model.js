@@ -2,7 +2,7 @@
 
 const BaseModel = require("./base.model");
 const { generateRandomString } = require("../utils");
-const TimestampModel = require("./timestamp.model");
+const TimestampModel = require("./common/timestamp.model");
 
 class KeyTokenDao extends TimestampModel {
     constructor({

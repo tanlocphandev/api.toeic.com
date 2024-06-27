@@ -61,3 +61,76 @@ CREATE TABLE IF NOT EXISTS `question_types` (
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
     PRIMARY KEY (`type_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
+
+CREATE TABLE IF NOT EXISTS `tests` (
+    `test_id` INT NOT NULL AUTO_INCREMENT,
+    `test_name` VARCHAR(255) NOT NULL UNIQUE,
+    `test_slug` VARCHAR(255) NOT NULL UNIQUE,
+    `test_of_year` VARCHAR(4) DEFAULT NULL,
+    `test_duration` INT DEFAULT 120,
+    `test_comment_count` INT DEFAULT 0,
+    `test_user_count` INT DEFAULT 0,
+    `test_question_count` INT DEFAULT 200,
+    `test_tag` VARCHAR(255) DEFAULT "#TOEIC",
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` timestamp DEFAULT NULL,
+    PRIMARY KEY (`test_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
+
+CREATE TABLE IF NOT EXISTS `tests_parts` (
+    `part_id` VARCHAR(16) NOT NULL,
+    `test_id` INT NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` timestamp DEFAULT NULL,
+    FOREIGN KEY (`part_id`) REFERENCES `parts` (`part_id`),
+    FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
+    PRIMARY KEY (`test_id`, `part_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `questions` (
+    `question_id` INT NOT NULL AUTO_INCREMENT,
+    `question_order` INT NOT NULL,
+    `question_audio` VARCHAR(255) DEFAULT NULL,
+    `question_image` VARCHAR(255) DEFAULT NULL,
+    `question_text` TEXT DEFAULT NULL,
+    `question_score` INT NOT NULL,
+    `question_transcript` JSON DEFAULT NULL,
+    `question_explain` JSON DEFAULT NULL,
+    `question_type_id` INT NOT NULL,
+    `part_id` VARCHAR(16) NOT NULL,
+    `test_id` INT NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` timestamp DEFAULT NULL,
+    FOREIGN KEY (`part_id`) REFERENCES `parts` (`part_id`),
+    FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
+    FOREIGN KEY (`question_type_id`) REFERENCES `question_types` (`type_id`),
+    PRIMARY KEY (`question_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
+
+CREATE TABLE IF NOT EXISTS `questions_tags` (
+    `tag_id` VARCHAR(16) NOT NULL,
+    `question_id` INT NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` timestamp DEFAULT NULL,
+    FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`),
+    FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
+    PRIMARY KEY (`tag_id`, `question_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `answers` (
+    `answer_id` INT NOT NULL AUTO_INCREMENT,
+    `answer_order` INT NOT NULL CHECK(answer_order > 0 AND answer_order <= 4),
+    `answer_text` VARCHAR(255) NOT NULL,
+    `answer_isCorrect` BOOLEAN NOT NULL,
+    `answer_image` VARCHAR(255) DEFAULT NULL,
+    `question_id` INT NOT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` timestamp DEFAULT NULL,
+    FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
+    PRIMARY KEY (`answer_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;

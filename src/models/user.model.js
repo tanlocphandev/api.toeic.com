@@ -1,7 +1,7 @@
 "use strict";
 
 const BaseModel = require("./base.model");
-const TimestampModel = require("./timestamp.model");
+const TimestampModel = require("./common/timestamp.model");
 const { USER_ROLES } = require("../constants");
 const QueryHelper = require("../helpers/query.helper");
 const _ = require("lodash");

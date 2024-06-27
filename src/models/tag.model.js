@@ -3,7 +3,7 @@
 const QueryHelper = require("../helpers/query.helper");
 const { generateSlug, filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
-const TimestampModel = require("./timestamp.model");
+const TimestampModel = require("./common/timestamp.model");
 
 class TagDao extends TimestampModel {
     constructor({ tag_id, tag_name, tag_slug, created_at, updated_at }) {
