@@ -82,7 +82,7 @@ const filterPropOutsideInstance = ({ instance, fields = {} }) => {
     const _instance = instance.getInstance();
 
     Object.keys(fields).forEach((key) => {
-        if (!Object.hasOwn(_instance, key)) {
+        if (!Object.hasOwn(_instance, String(key).replace("LOWER(", "").replace(")", ""))) {
             delete fields[key];
         }
     });

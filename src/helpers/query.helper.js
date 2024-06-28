@@ -1,5 +1,7 @@
 "use strict";
 
+const { raw } = require("mysql2");
+
 class QueryHelper {
     static getPagination(query) {
         const page = parseInt(query.page) || 1;
@@ -12,8 +14,19 @@ class QueryHelper {
             const queryString = String(query.query).split(";");
 
             queryString.forEach((q) => {
-                const [key, value] = q.split("=");
+                const [key, value] = q.split(":");
                 _query[key] = value;
+            });
+        }
+
+        if (query.queryLike) {
+            const queryString = String(query.queryLike).split(";");
+
+            queryString.forEach((q) => {
+                const [key, value] = q.split(":");
+                _query[`LOWER(${key})`] = {
+                    "?": raw(`LIKE '%${value.toLowerCase()}%'`),
+                };
             });
         }
 

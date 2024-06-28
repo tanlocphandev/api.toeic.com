@@ -120,6 +120,8 @@ class BaseModel {
         params.push(limit, offset);
         baseQuery += ` LIMIT ? OFFSET ?`;
 
+        // console.log({ baseQuery: format(baseQuery, params), params });
+
         const [[resultCount], result] = await Promise.all([
             this.db.query(format(countQuery, paramsCount)),
             this.db.query(format(baseQuery, params)),
@@ -148,11 +150,17 @@ class BaseModel {
         const condition = Object.entries(conditions)
             .map(([key, value]) => {
                 const { condition, value: _value } = this.formatValue(value);
+                let isObjectOfRaw = false;
 
-                if (condition === "?" || typeof value === "object")
+                if (condition === "?" || typeof value === "object") {
                     newValue = [...newValue, _value];
 
-                return `${key} ${condition === "?" ? `= ?` : condition}`;
+                    if (typeof _value === "object" && Object.getOwnPropertyNames("toSqlString")) {
+                        isObjectOfRaw = true;
+                    }
+                }
+
+                return `${key} ${condition === "?" && !isObjectOfRaw ? `= ?` : condition}`;
             })
             .join(" AND ");
 
