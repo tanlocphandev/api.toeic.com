@@ -74,7 +74,11 @@ const validateFieldsInFile = ({ fields = [], keyBody = "body" }) => {
 
             Object.keys(row).forEach((key) => {
                 if (!fields.includes(key))
-                    throw new BadRequestError(`Chỉ cho phép các các cột ${fields.join(", ")}!`);
+                    throw new BadRequestError(
+                        `Chỉ cho phép các các cột ${fields.join(
+                            ", "
+                        )}!. Vui lòng upload đúng định dạng!`
+                    );
             });
         }
 
