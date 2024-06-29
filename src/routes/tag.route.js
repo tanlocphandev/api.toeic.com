@@ -12,7 +12,14 @@ const {
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
 const { uploadDisk } = require("../configs/multer.config");
+const { authentication, checkRoles } = require("../middleware/auth.middleware");
+const { USER_ROLES } = require("../constants");
 
+route.get(`/`, asyncHandler(tagController.find));
+route.get("/:tagId", asyncHandler(tagController.findById));
+
+route.use(authentication);
+route.use(checkRoles([USER_ROLES.ADMIN]));
 route.post(
     `/multiple`,
     [
@@ -27,8 +34,6 @@ route.post(
     asyncHandler(tagController.createMultipleWithUploadFile)
 );
 route.post(`/`, validateData(createTagSchema), asyncHandler(tagController.create));
-route.get(`/`, asyncHandler(tagController.find));
 route.patch(`/:tagId`, validateData(createTagSchema), asyncHandler(tagController.update));
-route.get("/:tagId", asyncHandler(tagController.findById));
 
 module.exports = route;

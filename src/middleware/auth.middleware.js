@@ -1,7 +1,7 @@
 "use strict";
 
 const { HEADERS } = require("../constants");
-const { AuthFailureError } = require("../core/error.response");
+const { AuthFailureError, ForbiddenError } = require("../core/error.response");
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const { verifyToken } = require("../helpers/auth.helper");
 const KeyTokenService = require("../services/keyToken.service");
@@ -100,4 +100,22 @@ const authentication = asyncHandler(async (req, res, next) => {
     next();
 });
 
-module.exports = { authentication };
+/**
+ * Middleware function that checks if the user's role is included in the specified roles.
+ *
+ * @param {Array<string>} roles - An array of roles to check against the user's role.
+ * @return {Function} - An async handler function that checks the user's role and throws a ForbiddenError if the user's role is not included in the specified roles.
+ */
+const checkRoles = (roles = []) => {
+    return asyncHandler(async (req, res, next) => {
+        const { user } = req;
+
+        if (!roles.includes(user.role)) {
+            throw new ForbiddenError("Bạn không được phép truy cập!");
+        }
+
+        return next();
+    });
+};
+
+module.exports = { authentication, checkRoles };

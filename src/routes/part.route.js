@@ -11,8 +11,15 @@ const {
     validateFileNotFound,
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
+const { authentication, checkRoles } = require("../middleware/auth.middleware");
 const { uploadDisk } = require("../configs/multer.config");
+const { USER_ROLES } = require("../constants");
 
+route.get(`/`, asyncHandler(partController.find));
+route.get("/:partId", asyncHandler(partController.findById));
+
+route.use(authentication);
+route.use(checkRoles([USER_ROLES.ADMIN]));
 route.post(
     `/multiple`,
     [
@@ -27,8 +34,6 @@ route.post(
     asyncHandler(partController.createMultipleWithUploadFile)
 );
 route.post(`/`, validateData(createPartSchema), asyncHandler(partController.create));
-route.get(`/`, asyncHandler(partController.find));
 route.patch(`/:partId`, validateData(createPartSchema), asyncHandler(partController.update));
-route.get("/:partId", asyncHandler(partController.findById));
 
 module.exports = route;

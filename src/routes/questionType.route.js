@@ -12,6 +12,14 @@ const {
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
 const { uploadDisk } = require("../configs/multer.config");
+const { authentication, checkRoles } = require("../middleware/auth.middleware");
+const { USER_ROLES } = require("../constants");
+
+route.get(`/`, asyncHandler(questionTypeController.find));
+route.get("/:typeId", asyncHandler(questionTypeController.findById));
+
+route.use(authentication);
+route.use(checkRoles([USER_ROLES.ADMIN]));
 
 route.post(
     `/multiple`,
@@ -31,12 +39,11 @@ route.post(
     validateData(createQuestionTypeSchema),
     asyncHandler(questionTypeController.create)
 );
-route.get(`/`, asyncHandler(questionTypeController.find));
+
 route.patch(
     `/:typeId`,
     validateData(createQuestionTypeSchema),
     asyncHandler(questionTypeController.update)
 );
-route.get("/:typeId", asyncHandler(questionTypeController.findById));
 
 module.exports = route;
