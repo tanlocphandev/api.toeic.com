@@ -1,5 +1,5 @@
 
--- CREATE DATABASE `db_toeic_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+CREATE DATABASE `db_toeic_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 USE `db_toeic_dev`;
 
