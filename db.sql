@@ -1,5 +1,5 @@
 
-CREATE DATABASE `db_toeic_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
+CREATE DATABASE IF NOT EXISTS `db_toeic_dev` DEFAULT CHARACTER SET utf8 COLLATE utf8_unicode_ci;
 
 USE `db_toeic_dev`;
 
@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS `tests` (
     `test_tag` VARCHAR(255) DEFAULT "#TOEIC",
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    `deleted_at` timestamp DEFAULT NULL,
+    `deleted_at` datetime DEFAULT NULL,
     PRIMARY KEY (`test_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
 
@@ -83,7 +83,7 @@ CREATE TABLE IF NOT EXISTS `tests_parts` (
     `test_id` INT NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    `deleted_at` timestamp DEFAULT NULL,
+    `deleted_at` datetime DEFAULT NULL,
     FOREIGN KEY (`part_id`) REFERENCES `parts` (`part_id`),
     FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
     PRIMARY KEY (`test_id`, `part_id`)
@@ -103,7 +103,7 @@ CREATE TABLE IF NOT EXISTS `questions` (
     `test_id` INT NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    `deleted_at` timestamp DEFAULT NULL,
+    `deleted_at` datetime DEFAULT NULL,
     FOREIGN KEY (`part_id`) REFERENCES `parts` (`part_id`),
     FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
     FOREIGN KEY (`question_type_id`) REFERENCES `question_types` (`type_id`),
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS `questions_tags` (
     `question_id` INT NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    `deleted_at` timestamp DEFAULT NULL,
+    `deleted_at` datetime DEFAULT NULL,
     FOREIGN KEY (`tag_id`) REFERENCES `tags` (`tag_id`),
     FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
     PRIMARY KEY (`tag_id`, `question_id`)
@@ -130,7 +130,7 @@ CREATE TABLE IF NOT EXISTS `answers` (
     `question_id` INT NOT NULL,
     `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
     `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-    `deleted_at` timestamp DEFAULT NULL,
+    `deleted_at` datetime DEFAULT NULL,
     FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
     PRIMARY KEY (`answer_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
