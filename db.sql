@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS `parts` (
     PRIMARY KEY (`part_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `parts` ADD IF NOT EXISTS `part_desc` TEXT DEFAULT NULL AFTER `part_slug`;
+
 CREATE TABLE IF NOT EXISTS `question_types` (
     `type_id` INT NOT NULL AUTO_INCREMENT,
     `type_name` VARCHAR(255) NOT NULL UNIQUE,
@@ -77,6 +79,9 @@ CREATE TABLE IF NOT EXISTS `tests` (
     `deleted_at` datetime DEFAULT NULL,
     PRIMARY KEY (`test_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
+
+
+ALTER TABLE `tests` ADD IF NOT EXISTS `test_audio` VARCHAR(255) DEFAULT NULL AFTER `test_tag`;
 
 CREATE TABLE IF NOT EXISTS `tests_parts` (
     `part_id` VARCHAR(16) NOT NULL,
@@ -110,6 +115,13 @@ CREATE TABLE IF NOT EXISTS `questions` (
     PRIMARY KEY (`question_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
 
+
+DROP INDEX IF EXISTS `index_question_order` ON `questions`;
+
+ALTER TABLE `questions` ADD INDEX `index_question_order`(`question_order` ASC);
+
+ALTER TABLE `questions` DROP IF EXISTS `question_score`;
+
 CREATE TABLE IF NOT EXISTS `questions_tags` (
     `tag_id` VARCHAR(16) NOT NULL,
     `question_id` INT NOT NULL,
@@ -134,3 +146,7 @@ CREATE TABLE IF NOT EXISTS `answers` (
     FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
     PRIMARY KEY (`answer_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
+
+DROP INDEX IF EXISTS `index_answer_order` ON `answers`;
+
+ALTER TABLE `answers` ADD INDEX `index_answer_order`(`answer_order` ASC);
