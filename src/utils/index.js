@@ -90,6 +90,51 @@ const filterPropOutsideInstance = ({ instance, fields = {} }) => {
     return fields;
 };
 
+/**
+ * Checks if the input string is a valid URL.
+ *
+ * @param {string} str - The input string to check.
+ * @return {boolean} - Returns true if the input string is a valid URL, false otherwise.
+ *
+ * This function uses a regular expression to check if the input string is a valid URL.
+ * The regular expression used is as follows:
+ *
+ *   /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!-\/]))?/
+ *
+ * This regular expression matches the following:
+ *
+ *   - protocol (ftp, http, https)
+ *   - domain name
+ *   - port number (optional)
+ *   - path (optional)
+ *   - query string (optional)
+ *   - fragment (optional)
+ */
+const isUrl = (str) => {
+    const regexp = /^(?:ftp|http|https):\/\/(?:(?:(?!:).)*\.)[^.]+$/;
+    return regexp.test(str);
+};
+
+/**
+ * Filters the extension from a given string.
+ *
+ * @param {string} str - The input string.
+ * @return {string} The string without the extension.
+ */
+const filterExtFilePath = (str) => {
+    return str.split(".").slice(0, -1).join(".");
+};
+
+/**
+ * Generates a random number with the specified length.
+ *
+ * @param {number} [length=12] - The length of the random number to generate. Defaults to 12.
+ * @return {number} - The generated random number.
+ */
+const randomNumber = (length = 12) => {
+    return Math.floor(Math.pow(10, length - 1) + Math.random() * 9 * Math.pow(10, length - 1));
+};
+
 module.exports = {
     generateRandomString,
     getInfoData,
@@ -97,4 +142,7 @@ module.exports = {
     mapperUnSelect,
     generateSlug,
     filterPropOutsideInstance,
+    isUrl,
+    filterExtFilePath,
+    randomNumber,
 };

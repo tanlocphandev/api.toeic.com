@@ -20,4 +20,17 @@ route.post(
     asyncHandler(uploadController.uploadLocalFileXlsx)
 );
 
+route.post(
+    "/local/question",
+    [
+        uploadDisk.single("file"),
+        validateFileNotFound(`Không tìm thấy file excel upload!`),
+        validateExtFile({
+            extFile: ["xlsx", "csv"],
+            message: "File upload chỉ cho phép có đuôi .xlsx, .csv!",
+        }),
+    ],
+    asyncHandler(uploadController.uploadQuestion)
+);
+
 module.exports = route;

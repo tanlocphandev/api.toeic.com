@@ -1,6 +1,8 @@
 const APP_CONFIGS = {
     PREFIX: "/api/v1",
     UPLOAD_DIR: process.env.UPLOAD_DIR || "uploads",
+    FOLDER_IMAGE_QUESTION_LOCAL: process.env.FOLDER_IMAGE_QUESTION_LOCAL,
+    FOLDER_AUDIO_QUESTION_LOCAL: process.env.FOLDER_AUDIO_QUESTION_LOCAL,
 };
 
 module.exports = APP_CONFIGS;
