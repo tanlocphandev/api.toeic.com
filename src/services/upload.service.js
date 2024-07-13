@@ -105,7 +105,10 @@ class UploadServicer {
         return result;
     }
 
-    static async handleUploadQuestionToCloud(data = []) {
+    static async handleUploadQuestionToCloud({ data = [], testOfYear = 2019, testNoOfYear = 1 }) {
+        const folderImage = `toeic/${testOfYear}/test${testNoOfYear}/question_image`;
+        const folderAudio = `toeic/${testOfYear}/test${testNoOfYear}/question_audio`;
+
         const promises = data.map(async (row) => {
             try {
                 let uploadImageCloud, uploadAudioCloud;
@@ -114,7 +117,7 @@ class UploadServicer {
                     uploadImageCloud = await UploadServicer.handleUpload({
                         file: row.imagePath,
                         publicId: filterExtFilePath(row.image), // toeic/2020/test1/question_audio/1.[png, webp, jpg, ... (image/*)]
-                        folder: "toeic/question_image", // toeic/year/test/question_image -> toeic/2020/test1/question_image
+                        folder: folderImage, // toeic/year/test/question_image -> toeic/2020/test1/question_image
                     });
 
                     delete row.imagePath;
@@ -125,7 +128,7 @@ class UploadServicer {
                         file: row.audioPath,
                         publicId: filterExtFilePath(row.audio), // toeic/2020/test1/question_audio/1.mp3
                         resource_type: "video",
-                        folder: "toeic/audio_image", // toeic/year/test/question_audio -> toeic/2020/test1/question_audio
+                        folder: folderAudio, // toeic/year/test/question_audio -> toeic/2020/test1/question_audio
                     });
 
                     delete row.audioPath;
@@ -140,7 +143,7 @@ class UploadServicer {
 
         const results = await Promise.all(promises);
 
-        return results;
+        return { results, folderImage, folderAudio };
     }
 
     static async handleUpload({ file, publicId, resource_type, folder }) {

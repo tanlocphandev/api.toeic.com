@@ -20,7 +20,7 @@ class UploadController {
 
         const data = UploadServicer.handleUploadQuestion(response);
 
-        const dataUpload = await UploadServicer.handleUploadQuestionToCloud(data);
+        const dataUpload = await UploadServicer.handleUploadQuestionToCloud({ data, ...req.body });
 
         return new OK({ message: "Upload question file successfully", metadata: dataUpload }).send(
             res

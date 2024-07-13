@@ -5,7 +5,12 @@ const route = express.Router();
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const uploadController = require("../controllers/upload.controller");
 const { uploadDisk } = require("../configs/multer.config");
-const { validateExtFile, validateFileNotFound } = require("../middleware/validate.middleware");
+const {
+    validateExtFile,
+    validateFileNotFound,
+    validateData,
+} = require("../middleware/validate.middleware");
+const { uploadQuestionSchema } = require("../schemas/upload.schema");
 
 route.post(
     "/local/xlsx",
