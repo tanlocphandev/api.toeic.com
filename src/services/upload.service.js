@@ -3,7 +3,7 @@
 const APP_CONFIGS = require("../configs/app.config");
 const { BadRequestError, NotfoundRequestError } = require("../core/error.response");
 const cloudinary = require("../libs/cloudinary.lib");
-const { isUrl, filterExtFilePath, mapperUnSelect } = require("../utils");
+const { isUrl, filterExtFilePath, randomNumber } = require("../utils");
 const AnswerService = require("./answer.service");
 
 const {
@@ -25,16 +25,14 @@ class UploadServicer {
             throw new BadRequestError("Data is empty!");
         }
 
-        const result = data.map((row) => {
-            if (row.audio && !isUrl(row.audio)) {
-                row.audioPath = `${FOLDER_AUDIO_QUESTION}/${row.audio}`;
-            }
+        let group_question_order = -1;
+        let result = [];
 
-            if (row.image && !isUrl(row.image)) {
-                row.imagePath = `${FOLDER_IMAGE_QUESTION}/${row.image}`;
-            }
+        data.forEach((row) => {
+            row = UploadServicer.mapperMediaPathQuestion(row);
 
-            const answers = [];
+            let answers = [],
+                isPushResult = true;
 
             if (row.tags) {
                 row.tags = row.tags.split(";").map((t) => t.trim());
@@ -56,7 +54,52 @@ class UploadServicer {
                 }
             });
 
-            return { ...row, answers };
+            if (row.group_question_order) {
+                if (row.group_question_order !== group_question_order) {
+                    group_question_order = row.group_question_order;
+                }
+
+                // Find group question order exist in result;
+
+                const index = result.findIndex(
+                    (t) => t?.group_question_order === group_question_order
+                );
+
+                if (index === -1) {
+                    const group_question = {
+                        group_id: randomNumber(),
+                        audio: row?.group_audio,
+                        image: row?.group_image,
+                        text: row?.group_text,
+                        group_question_order: group_question_order,
+                        group_transcript: row?.group_transcript,
+                        part: row?.part,
+                    };
+
+                    delete row?.group_audio;
+                    delete row?.group_image;
+                    delete row?.group_text;
+                    delete row?.group_transcript;
+
+                    row = UploadServicer.mapperMediaPathQuestion({
+                        ...group_question,
+                        group_questions: [{ ...row, answers }],
+                    });
+
+                    answers = [];
+                } else {
+                    const item = result[index];
+
+                    isPushResult = false;
+
+                    result[index] = {
+                        ...item,
+                        group_questions: [...item.group_questions, { ...row, answers }],
+                    };
+                }
+            }
+
+            isPushResult && result.push({ ...row, answers });
         });
 
         return result;
@@ -68,26 +111,22 @@ class UploadServicer {
                 let uploadImageCloud, uploadAudioCloud;
 
                 if (row.imagePath) {
-                    const response = await cloudinary.upload({
+                    uploadImageCloud = await UploadServicer.handleUpload({
                         file: row.imagePath,
-                        publicId: filterExtFilePath(row.image),
-                        folder: "toeic/question_image",
+                        publicId: filterExtFilePath(row.image), // toeic/2020/test1/question_audio/1.[png, webp, jpg, ... (image/*)]
+                        folder: "toeic/question_image", // toeic/year/test/question_image -> toeic/2020/test1/question_image
                     });
-
-                    uploadImageCloud = cloudinary.getInfoUpload(response);
 
                     delete row.imagePath;
                 }
 
                 if (row.audioPath) {
-                    const response = await cloudinary.upload({
+                    uploadAudioCloud = await UploadServicer.handleUpload({
                         file: row.audioPath,
-                        publicId: filterExtFilePath(row.audio),
+                        publicId: filterExtFilePath(row.audio), // toeic/2020/test1/question_audio/1.mp3
                         resource_type: "video",
-                        folder: "toeic/audio_image",
+                        folder: "toeic/audio_image", // toeic/year/test/question_audio -> toeic/2020/test1/question_audio
                     });
-
-                    uploadAudioCloud = cloudinary.getInfoUpload(response);
 
                     delete row.audioPath;
                 }
@@ -103,6 +142,31 @@ class UploadServicer {
 
         return results;
     }
+
+    static async handleUpload({ file, publicId, resource_type, folder }) {
+        const options = {
+            file,
+            publicId,
+            resource_type,
+            folder,
+        };
+
+        const response = await cloudinary.upload(options);
+
+        return cloudinary.getInfoUpload(response);
+    }
+
+    static mapperMediaPathQuestion = (row) => {
+        if (row?.audio && !isUrl(row.audio)) {
+            row.audioPath = `${FOLDER_AUDIO_QUESTION}/${row.audio}`;
+        }
+
+        if (row?.image && !isUrl(row.image)) {
+            row.imagePath = `${FOLDER_IMAGE_QUESTION}/${row.image}`;
+        }
+
+        return row;
+    };
 }
 
 module.exports = UploadServicer;
