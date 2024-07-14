@@ -108,10 +108,17 @@ class UploadServicer {
     static async handleUploadQuestionToCloud({ data = [], testOfYear = 2019, testNoOfYear = 1 }) {
         const folderImage = `toeic/${testOfYear}/test${testNoOfYear}/question_image`;
         const folderAudio = `toeic/${testOfYear}/test${testNoOfYear}/question_audio`;
+        let currentPart = 1;
+        let parts = [currentPart];
 
         const promises = data.map(async (row) => {
             try {
                 let uploadImageCloud, uploadAudioCloud;
+
+                if (row.part !== currentPart) {
+                    currentPart = row.part;
+                    parts.push(row.part);
+                }
 
                 if (row.imagePath) {
                     uploadImageCloud = await UploadServicer.handleUpload({
@@ -143,7 +150,7 @@ class UploadServicer {
 
         const results = await Promise.all(promises);
 
-        return { results, folderImage, folderAudio };
+        return { results, folderImage, folderAudio, parts: [...new Set(parts)] };
     }
 
     static async handleUpload({ file, publicId, resource_type, folder }) {
