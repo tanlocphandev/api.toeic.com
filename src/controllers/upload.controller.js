@@ -18,13 +18,18 @@ class UploadController {
 
         const response = await XLSX.readAsync(file.path);
 
-        const data = UploadServicer.handleUploadQuestion(response);
+        const { totalAnswer, questionTypes, result } =
+            UploadServicer.handleUploadQuestion(response);
 
-        const dataUpload = await UploadServicer.handleUploadQuestionToCloud({ data, ...req.body });
+        const dataUpload = await UploadServicer.handleUploadQuestionToCloud({
+            data: result,
+            ...req.body,
+        });
 
-        return new OK({ message: "Upload question file successfully", metadata: dataUpload }).send(
-            res
-        );
+        return new OK({
+            message: "Upload question file successfully",
+            metadata: { ...dataUpload, totalAnswer, questionTypes, dataDefault: response },
+        }).send(res);
     }
 }
 

@@ -27,9 +27,14 @@ class UploadServicer {
 
         let group_question_order = -1;
         let result = [];
+        let totalAnswer = 1;
+        let questionTypes = [];
 
         data.forEach((row) => {
             row = UploadServicer.mapperMediaPathQuestion(row);
+            totalAnswer = row.order;
+
+            questionTypes = [...questionTypes, row.question_type];
 
             let answers = [],
                 isPushResult = true;
@@ -74,6 +79,7 @@ class UploadServicer {
                         group_question_order: group_question_order,
                         group_transcript: row?.group_transcript,
                         part: row?.part,
+                        question_type: row?.question_type,
                     };
 
                     delete row?.group_audio;
@@ -102,7 +108,7 @@ class UploadServicer {
             isPushResult && result.push({ ...row, answers });
         });
 
-        return result;
+        return { totalAnswer, questionTypes: [...new Set(questionTypes)], result };
     }
 
     static async handleUploadQuestionToCloud({ data = [], testOfYear = 2019, testNoOfYear = 1 }) {

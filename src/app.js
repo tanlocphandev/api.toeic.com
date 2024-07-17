@@ -7,12 +7,14 @@ const morgan = require("morgan");
 const { initializeDB } = require("./db/mysql.db");
 const { catchNotFound, catchError } = require("./middleware/error.middleware");
 const corsConfig = require("./configs/cors.config");
+const compression = require("compression");
 
 app.use(cors(corsConfig));
+app.use(compression());
 app.use(helmet());
 app.use(morgan("dev"));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
 initializeDB();
 

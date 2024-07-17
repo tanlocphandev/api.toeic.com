@@ -26,6 +26,7 @@ route.post(
     ],
     asyncHandler(testController.createMultipleWithUploadFile)
 );
+route.post(`/with-questions`, asyncHandler(testController.createWithUploadQuestion));
 route.post(`/`, validateData(createTestSchema), asyncHandler(testController.create));
 route.get(`/`, asyncHandler(testController.find));
 route.patch(`/:testId`, validateData(createTestSchema), asyncHandler(testController.update));

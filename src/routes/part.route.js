@@ -29,7 +29,7 @@ route.post(
             extFile: ["xlsx", "csv"],
             message: "File upload chỉ cho phép có đuôi .xlsx, .csv!",
         }),
-        validateFieldsInFile({ fields: ["partName"], keyBody: "parts" }),
+        validateFieldsInFile({ fields: ["partName", "partNumber"], keyBody: "parts" }),
     ],
     asyncHandler(partController.createMultipleWithUploadFile)
 );

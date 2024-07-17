@@ -22,6 +22,15 @@ class TestController {
         }).send(res);
     }
 
+    async createWithUploadQuestion(req, res) {
+        const test = await TesService.createWithUploadQuestion(req.body);
+
+        return new Created({
+            message: "Create test successfully",
+            metadata: test,
+        }).send(res);
+    }
+
     async update(req, res) {
         const { testId } = req.params;
         const test = await TesService.update(testId, req.body);

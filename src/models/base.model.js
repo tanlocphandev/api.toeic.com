@@ -4,6 +4,7 @@ const { format, raw } = require("mysql2");
 const { ServerError, BadRequestError } = require("../core/error.response");
 const { database } = require("../db/mysql.db");
 const _ = require("lodash");
+const QueryHelper = require("../helpers/query.helper");
 
 class BaseModel {
     constructor() {
@@ -62,19 +63,17 @@ class BaseModel {
     async updateOne(conditions, data) {
         if (!data || !conditions) throw new BadRequestError("Data not found!");
 
-        const { query, value } = this.buildWhereClause(conditions);
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
 
         const sql = format(`UPDATE ?? SET ? ${query}`, [this.tableName, data, ...value]);
 
         return await this.db.execute(sql);
     }
 
-    delete() {}
-
     deleteOne(conditions) {
         if (!conditions) throw new BadRequestError("Data not found!");
 
-        const { query, value } = this.buildWhereClause(conditions);
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
 
         const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
 
@@ -86,7 +85,7 @@ class BaseModel {
         let params = [this.tableName];
 
         if (conditions) {
-            const { query: whereQuery, value } = this.buildWhereClause(conditions);
+            const { query: whereQuery, value } = QueryHelper.buildWhereClause(conditions);
             query = `${query} ${whereQuery}`;
             params.push(...value);
         }
@@ -105,7 +104,7 @@ class BaseModel {
         const paramsCount = [this.tableName];
 
         if (!_.isEmpty(where)) {
-            const { query: whereQuery, value } = this.buildWhereClause(where);
+            const { query: whereQuery, value } = QueryHelper.buildWhereClause(where);
             baseQuery = `${baseQuery} ${whereQuery}`;
             countQuery = `${countQuery} ${whereQuery}`;
             params.push(...value);
@@ -136,66 +135,8 @@ class BaseModel {
         };
     }
 
-    buildWhereClause(where) {
-        if (_.isEmpty(where)) return { query: "", value: null };
-
-        const { condition, newValue } = this.formatConditions(where);
-
-        return { query: `WHERE ${condition}`, value: newValue };
-    }
-
-    formatConditions(conditions) {
-        let newValue = [];
-
-        const condition = Object.entries(conditions)
-            .map(([key, value]) => {
-                const { condition, value: _value } = this.formatValue(value);
-                let isObjectOfRaw = false;
-
-                if (condition === "?" || typeof value === "object") {
-                    newValue = [...newValue, _value];
-
-                    if (typeof _value === "object" && Object.getOwnPropertyNames("toSqlString")) {
-                        isObjectOfRaw = true;
-                    }
-                }
-
-                return `${key} ${condition === "?" && !isObjectOfRaw ? `= ?` : condition}`;
-            })
-            .join(" AND ");
-
-        return { condition, newValue };
-    }
-
-    formatValue(inputValue) {
-        let condition = "";
-        let formattedValue = "";
-
-        if (typeof inputValue === "object") {
-            Object.entries(inputValue).forEach(([key, value]) => {
-                condition = key;
-                formattedValue = value;
-            });
-
-            return { condition, value: formattedValue };
-        }
-
-        const value = String(inputValue)?.toLowerCase();
-
-        if (value === "null" || value === "undefined") {
-            condition = "IS NULL";
-        } else if (value === "!null") {
-            condition = "IS NOT NULL";
-        } else {
-            condition = "?";
-            formattedValue = value;
-        }
-
-        return { condition, value: formattedValue };
-    }
-
     async findOne(conditions) {
-        const { query, value } = this.buildWhereClause(conditions);
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
 
         const sql = format(`SELECT * FROM ?? ${query}`, [this.tableName, ...value]);
 

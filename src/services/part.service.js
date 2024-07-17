@@ -5,7 +5,7 @@ const { partModel } = require("../models/part.model");
 const { generateSlug, generateRandomString } = require("../utils");
 
 class PartService {
-    static async create({ partName }) {
+    static async create({ partName, partNumber }) {
         // Check if the part already exists
         const foundPart = await partModel.findByName(partName);
 
@@ -19,6 +19,7 @@ class PartService {
             part_name: partName,
             part_slug: generateSlug(partName),
             part_id: generateRandomString(16),
+            part_number: partNumber,
         };
 
         const newPart = await partModel.insert(payload);
@@ -43,13 +44,14 @@ class PartService {
         // Create new parts
         const payload = parts.map((part) => [
             part.partName,
+            part.partNumber,
             generateSlug(part.partName),
             generateRandomString(16),
         ]);
 
         const newParts = await partModel.insertBulk({
             data: payload,
-            fields: ["part_name", "part_slug", "part_id"],
+            fields: ["part_name", "part_number", "part_slug", "part_id"],
         });
 
         return newParts;

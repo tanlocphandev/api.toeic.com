@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS `parts` (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 ALTER TABLE `parts` ADD IF NOT EXISTS `part_desc` TEXT DEFAULT NULL AFTER `part_slug`;
+ALTER TABLE `parts` ADD IF NOT EXISTS `part_number` INT NOT NULL UNIQUE AFTER `part_slug`;
 
 CREATE TABLE IF NOT EXISTS `question_types` (
     `type_id` INT NOT NULL AUTO_INCREMENT,
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS `tests` (
 
 
 ALTER TABLE `tests` ADD IF NOT EXISTS `test_audio` VARCHAR(255) DEFAULT NULL AFTER `test_tag`;
+ALTER TABLE `tests` ADD IF NOT EXISTS `test_no_of_year` INT DEFAULT 1 AFTER `test_tag`;
 
 CREATE TABLE IF NOT EXISTS `tests_parts` (
     `part_id` VARCHAR(16) NOT NULL,

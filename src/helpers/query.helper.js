@@ -1,6 +1,7 @@
 "use strict";
 
 const { raw } = require("mysql2");
+const _ = require("lodash");
 
 class QueryHelper {
     static getPagination(query) {
@@ -36,6 +37,64 @@ class QueryHelper {
         }
 
         return { page, limit, offset, query: _query, order };
+    }
+
+    static buildWhereClause(where) {
+        if (_.isEmpty(where)) return { query: "", value: null };
+
+        const { condition, newValue } = QueryHelper.formatConditions(where);
+
+        return { query: `WHERE ${condition}`, value: newValue };
+    }
+
+    static formatConditions(conditions) {
+        let newValue = [];
+
+        const condition = Object.entries(conditions)
+            .map(([key, value]) => {
+                const { condition, value: _value } = QueryHelper.formatValue(value);
+                let isObjectOfRaw = false;
+
+                if (condition === "?" || typeof value === "object") {
+                    newValue = [...newValue, _value];
+
+                    if (typeof _value === "object" && Object.getOwnPropertyNames("toSqlString")) {
+                        isObjectOfRaw = true;
+                    }
+                }
+
+                return `${key} ${condition === "?" && !isObjectOfRaw ? `= ?` : condition}`;
+            })
+            .join(" AND ");
+
+        return { condition, newValue };
+    }
+
+    static formatValue(inputValue) {
+        let condition = "";
+        let formattedValue = "";
+
+        if (typeof inputValue === "object") {
+            Object.entries(inputValue).forEach(([key, value]) => {
+                condition = key;
+                formattedValue = value;
+            });
+
+            return { condition, value: formattedValue };
+        }
+
+        const value = String(inputValue)?.toLowerCase();
+
+        if (value === "null" || value === "undefined") {
+            condition = "IS NULL";
+        } else if (value === "!null") {
+            condition = "IS NOT NULL";
+        } else {
+            condition = "?";
+            formattedValue = value;
+        }
+
+        return { condition, value: formattedValue };
     }
 }
 
