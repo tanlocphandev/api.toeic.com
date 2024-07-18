@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     PRIMARY KEY (`user_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `users` CHANGE `user_avatar` `user_avatar` JSON DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS `key_tokens` (
     `key_id` VARCHAR(16) NOT NULL,
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS `tests` (
 
 ALTER TABLE `tests` ADD IF NOT EXISTS `test_audio` VARCHAR(255) DEFAULT NULL AFTER `test_tag`;
 ALTER TABLE `tests` ADD IF NOT EXISTS `test_no_of_year` INT DEFAULT 1 AFTER `test_tag`;
+ALTER TABLE `tests` CHANGE `test_audio` `test_audio` JSON DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS `tests_parts` (
     `part_id` VARCHAR(16) NOT NULL,
@@ -94,6 +96,20 @@ CREATE TABLE IF NOT EXISTS `tests_parts` (
     FOREIGN KEY (`part_id`) REFERENCES `parts` (`part_id`),
     FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
     PRIMARY KEY (`test_id`, `part_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `group_questions` (
+    `group_id` INT NOT NULL AUTO_INCREMENT,
+    `group_question_order` VARCHAR(255) NOT NULL,
+    `group_audio` JSON DEFAULT NULL,
+    `group_image` JSON DEFAULT NULL,
+    `group_text` TEXT DEFAULT NULL,
+    `group_transcript` TEXT DEFAULT NULL,
+    `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+    `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+    `deleted_at` datetime DEFAULT NULL,
+    PRIMARY KEY (`group_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `questions` (
@@ -117,12 +133,28 @@ CREATE TABLE IF NOT EXISTS `questions` (
     PRIMARY KEY (`question_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
 
-
 DROP INDEX IF EXISTS `index_question_order` ON `questions`;
-
 ALTER TABLE `questions` ADD INDEX `index_question_order`(`question_order` ASC);
-
 ALTER TABLE `questions` DROP IF EXISTS `question_score`;
+ALTER TABLE `questions` CHANGE `question_audio` `question_audio` JSON DEFAULT NULL;
+ALTER TABLE `questions` CHANGE `question_image` `question_image` JSON DEFAULT NULL;
+ALTER TABLE `questions` CHANGE `question_transcript` `question_transcript` TEXT DEFAULT NULL;
+ALTER TABLE `questions` CHANGE `question_explain` `question_explain` TEXT DEFAULT NULL;
+ALTER TABLE `questions` ADD IF NOT EXISTS `group_question_id` INT DEFAULT NULL AFTER `test_id`;
+
+DROP INDEX IF EXISTS `fk_questions_far_group_questions_idx` ON `questions`;
+
+ALTER TABLE `questions`
+DROP FOREIGN KEY IF EXISTS `fk_questions_far_group_questions`;
+
+ALTER TABLE `questions`
+ADD INDEX `fk_questions_far_group_questions_idx` (`group_question_id` ASC),
+ADD CONSTRAINT `fk_questions_far_group_questions`
+  FOREIGN KEY (`group_question_id`)
+  REFERENCES `group_questions` (`group_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
 
 CREATE TABLE IF NOT EXISTS `questions_tags` (
     `tag_id` VARCHAR(16) NOT NULL,
@@ -150,5 +182,5 @@ CREATE TABLE IF NOT EXISTS `answers` (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
 
 DROP INDEX IF EXISTS `index_answer_order` ON `answers`;
-
 ALTER TABLE `answers` ADD INDEX `index_answer_order`(`answer_order` ASC);
+ALTER TABLE `answers` CHANGE `answer_image` `answer_image` JSON DEFAULT NULL;
