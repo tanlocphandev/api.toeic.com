@@ -16,6 +16,8 @@ class TestDao extends SoftDeleteModel {
         test_user_count,
         test_question_count,
         test_tag,
+        test_audio,
+        test_no_of_year,
         created_at,
         updated_at,
         deleted_at,
@@ -31,6 +33,8 @@ class TestDao extends SoftDeleteModel {
         this.test_user_count = test_user_count;
         this.test_question_count = test_question_count;
         this.test_tag = test_tag;
+        this.test_audio = test_audio;
+        this.test_no_of_year = test_no_of_year;
     }
 
     static getInstance() {
@@ -45,6 +49,8 @@ class TestDao extends SoftDeleteModel {
                 test_user_count: 1,
                 test_question_count: 1,
                 test_tag: 1,
+                test_audio: 1,
+                test_no_of_year: 1,
                 created_at: 1,
                 updated_at: 1,
                 deleted_at: 1,

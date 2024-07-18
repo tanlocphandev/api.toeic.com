@@ -31,24 +31,34 @@ class Transaction {
 
     static async insert({ data, tableName, connection }) {
         const sql = format(`INSERT INTO ?? SET ?`, [tableName, data]);
-        return await connection.execute(sql);
+        const [result] = await connection.execute(sql);
+        return result;
+    }
+
+    static async getCurrentAutoIncrement({ tableName, connection }) {
+        const sql = format(`SHOW TABLE STATUS LIKE '${tableName}'`);
+        const [result] = await connection.query(sql);
+        return result[0].Auto_increment;
     }
 
     static async insertBulk({ data, tableName, fields = [], connection }) {
         const sql = format(`INSERT INTO ?? (??) VALUES ?`, [tableName, fields, data]);
-        return await connection.execute(sql);
+        const [result] = await connection.execute(sql);
+        return result;
     }
 
     static async update({ data, tableName, conditions, connection }) {
         const { query, value } = QueryHelper.buildWhereClause(conditions);
         const sql = format(`UPDATE ?? SET ? ${query}`, [tableName, data, ...value]);
-        return await connection.execute(sql);
+        const [result] = await connection.execute(sql);
+        return result;
     }
 
     static async delete({ tableName, conditions, connection }) {
         const { query, value } = QueryHelper.buildWhereClause(conditions);
         const sql = format(`DELETE FROM ?? ${query}`, [tableName, ...value]);
-        return await connection.execute(sql);
+        const [result] = await connection.execute(sql);
+        return result;
     }
 
     static async findOne({ tableName, conditions, connection }) {

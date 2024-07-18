@@ -6,12 +6,13 @@ const BaseModel = require("./base.model");
 const TimestampModel = require("./common/timestamp.model");
 
 class PartDao extends TimestampModel {
-    constructor({ part_id, part_name, part_slug, created_at, updated_at }) {
+    constructor({ part_id, part_name, part_slug, part_number, created_at, updated_at }) {
         super({ created_at, updated_at });
 
         this.part_id = part_id;
         this.part_name = part_name;
         this.part_slug = part_slug;
+        this.part_number = part_number;
     }
 
     static getInstance() {
@@ -20,6 +21,7 @@ class PartDao extends TimestampModel {
                 part_id: 1,
                 part_name: 1,
                 part_slug: 1,
+                part_number: 1,
                 created_at: 1,
                 updated_at: 1,
             });

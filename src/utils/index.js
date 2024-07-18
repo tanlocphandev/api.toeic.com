@@ -135,6 +135,65 @@ const randomNumber = (length = 12) => {
     return Math.floor(Math.pow(10, length - 1) + Math.random() * 9 * Math.pow(10, length - 1));
 };
 
+/**
+ * Maps a value based on the provided parameters.
+ * @param {object} options - An object containing the fields and object to pick from.
+ * @param {string} options.rawValue - The raw value to be mapped.
+ * @param {boolean} [options.isJson=false] - A flag indicating if the raw value is JSON.
+ * @param {any} [options.defaultValue=null] - The default value to return if mapping fails.
+ * @return {any} The mapped value based on the parameters.
+ */
+const mapValue = ({ rawValue, isJson = false, defaultValue = null }) => {
+    if (isJson) {
+        return rawValue ? JSON.stringify(rawValue) : defaultValue;
+    }
+
+    return rawValue || defaultValue;
+};
+
+const asyncPool = (poolLimit, array, iteratorFn) => {
+    let i = 0;
+    const ret = []; // Lưu trữ tất cả các tác vụ không đồng bộ
+    const executing = []; // Lưu trữ các tác vụ không đồng bộ đang được thực thi
+    const enqueue = function () {
+        if (i === array.length) {
+            return Promise.resolve();
+        }
+        const item = array[i++]; // Nhận một mục nhiệm vụ mới
+        // console.log("Nhan thang nay de thuc thi:::", item)
+        const p = Promise.resolve().then(() => iteratorFn(item, i, array));
+        ret.push(p);
+
+        let r = Promise.resolve();
+
+        if (poolLimit <= array.length) {
+            // Khi nhiệm vụ đã hoàn thành, hãy xóa nhiệm vụ đã hoàn thành khỏi mảng nhiệm vụ đang được thực thi
+            const e = p.then(() => executing.splice(executing.indexOf(e), 1));
+            executing.push(e);
+            if (executing.length >= poolLimit) {
+                r = Promise.race(executing);
+            }
+        }
+
+        // Sau khi tác vụ nhanh hơn trong danh sách tác vụ được thực thi, tác vụ cần làm mới sẽ nhận được từ mảng
+        return r.then(() => enqueue());
+    };
+    return enqueue().then(() => Promise.all(ret));
+}
+
+// const timeout = (i, array) => new Promise(resolve => setTimeout(() => {
+//     console.log("::::Giai quyet xong thang nay:::::", { i, array })
+//     resolve(i)
+// }, i));
+
+// async function asyncCall() {
+//     await asyncPool(2, [1000, 4000, 3000, 2000], timeout).then(results => {
+//         console.log('results::', results)
+//     })
+// }
+
+// asyncCall();
+
 module.exports = {
     generateRandomString,
     getInfoData,
@@ -145,4 +204,6 @@ module.exports = {
     isUrl,
     filterExtFilePath,
     randomNumber,
+    mapValue,
+    asyncPool
 };

@@ -98,7 +98,6 @@ CREATE TABLE IF NOT EXISTS `tests_parts` (
     PRIMARY KEY (`test_id`, `part_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-
 CREATE TABLE IF NOT EXISTS `group_questions` (
     `group_id` INT NOT NULL AUTO_INCREMENT,
     `group_question_order` VARCHAR(255) NOT NULL,
@@ -111,6 +110,45 @@ CREATE TABLE IF NOT EXISTS `group_questions` (
     `deleted_at` datetime DEFAULT NULL,
     PRIMARY KEY (`group_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+ALTER TABLE `group_questions` ADD IF NOT EXISTS `question_type_id` INT NOT NULL AFTER `group_transcript`;
+ALTER TABLE `group_questions` ADD IF NOT EXISTS `part_id` VARCHAR(16) NOT NULL AFTER `group_transcript`;
+ALTER TABLE `group_questions` ADD IF NOT EXISTS `test_id` INT NOT NULL AFTER `group_transcript`;
+
+ALTER TABLE `group_questions`
+DROP FOREIGN KEY IF EXISTS `fk_group_questions_far_question_types`;
+ALTER TABLE `group_questions`
+DROP FOREIGN KEY IF EXISTS `fk_group_questions_far_parts`;
+ALTER TABLE `group_questions`
+DROP FOREIGN KEY IF EXISTS `fk_group_questions_far_tests`;
+
+DROP INDEX IF EXISTS `fk_group_questions_far_question_types_idx` ON `group_questions`;
+DROP INDEX IF EXISTS `fk_group_questions_far_parts_idx` ON `group_questions`;
+DROP INDEX IF EXISTS `fk_group_questions_far_tests_idx` ON `group_questions`;
+
+ALTER TABLE `group_questions`
+ADD INDEX `fk_group_questions_far_question_types_idx` (`question_type_id` ASC),
+ADD CONSTRAINT `fk_group_questions_far_question_types`
+  FOREIGN KEY (`question_type_id`)
+  REFERENCES `question_types` (`type_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+ALTER TABLE `group_questions`
+ADD INDEX `fk_group_questions_far_parts_idx` (`part_id` ASC),
+ADD CONSTRAINT `fk_group_questions_far_parts`
+  FOREIGN KEY (`part_id`)
+  REFERENCES `parts` (`part_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
+ALTER TABLE `group_questions`
+ADD INDEX `fk_group_questions_far_tests_idx` (`test_id` ASC),
+ADD CONSTRAINT `fk_group_questions_far_tests`
+  FOREIGN KEY (`test_id`)
+  REFERENCES `tests` (`test_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
 
 CREATE TABLE IF NOT EXISTS `questions` (
     `question_id` INT NOT NULL AUTO_INCREMENT,
@@ -142,10 +180,10 @@ ALTER TABLE `questions` CHANGE `question_transcript` `question_transcript` TEXT 
 ALTER TABLE `questions` CHANGE `question_explain` `question_explain` TEXT DEFAULT NULL;
 ALTER TABLE `questions` ADD IF NOT EXISTS `group_question_id` INT DEFAULT NULL AFTER `test_id`;
 
-DROP INDEX IF EXISTS `fk_questions_far_group_questions_idx` ON `questions`;
-
 ALTER TABLE `questions`
 DROP FOREIGN KEY IF EXISTS `fk_questions_far_group_questions`;
+
+DROP INDEX IF EXISTS `fk_questions_far_group_questions_idx` ON `questions`;
 
 ALTER TABLE `questions`
 ADD INDEX `fk_questions_far_group_questions_idx` (`group_question_id` ASC),

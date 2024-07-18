@@ -17,6 +17,7 @@ class QuestionDao extends TimestampModel {
         question_type_id,
         part_id,
         test_id,
+        group_question_id,
         created_at,
         updated_at,
     }) {
@@ -29,10 +30,11 @@ class QuestionDao extends TimestampModel {
         this.question_text = question_text;
         this.question_transcript = question_transcript;
         this.question_explain = question_explain;
-        this.question_type_id = question_type_id;
 
+        this.question_type_id = question_type_id;
         this.test_id = test_id;
         this.part_id = part_id;
+        this.group_question_id = group_question_id;
     }
 
     static getInstance() {
@@ -48,6 +50,7 @@ class QuestionDao extends TimestampModel {
                 question_type_id: 1,
                 test_id: 1,
                 part_id: 1,
+                group_question_id: 1,
                 created_at: 1,
                 updated_at: 1,
             });
