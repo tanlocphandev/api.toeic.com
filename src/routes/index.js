@@ -11,5 +11,6 @@ route.use(`${APP_CONFIGS.PREFIX}/part`, require("./part.route"));
 route.use(`${APP_CONFIGS.PREFIX}/questionType`, require("./questionType.route"));
 route.use(`${APP_CONFIGS.PREFIX}/test`, require("./test.route"));
 route.use(`${APP_CONFIGS.PREFIX}/upload`, require("./upload.route"));
+route.use(`${APP_CONFIGS.PREFIX}/question`, require("./question.route"));
 
 module.exports = route;

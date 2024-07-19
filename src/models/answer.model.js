@@ -3,7 +3,7 @@
 const QueryHelper = require("../helpers/query.helper");
 const TimestampModel = require("./common/timestamp.model");
 const BaseModel = require("./base.model");
-const { filterPropOutsideInstance } = require("../utils");
+const { filterPropOutsideInstance, mapperUnSelect } = require("../utils");
 
 class AnswerDao extends TimestampModel {
     constructor({
@@ -67,6 +67,21 @@ class AnswerModel extends BaseModel {
         if (!response) return null;
 
         return new AnswerDao(response);
+    }
+
+    async findByQuestionId(questionId, isHiddenTime = false) {
+        const response = await super.find(
+            { question_id: questionId },
+            { key: "answer_order", value: "asc" }
+        );
+
+        if (!response.length) return [];
+
+        if (!isHiddenTime) return response.map((row) => new AnswerDao(row));
+
+        const results = response.map((row) => new AnswerDao(row));
+
+        return results.map((t) => mapperUnSelect(t, ["created_at", "updated_at"]));
     }
 
     async find(filters) {

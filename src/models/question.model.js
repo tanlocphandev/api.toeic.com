@@ -3,7 +3,12 @@
 const QueryHelper = require("../helpers/query.helper");
 const TimestampModel = require("./common/timestamp.model");
 const BaseModel = require("./base.model");
-const { generateSlug, filterPropOutsideInstance } = require("../utils");
+const { parseValueToJson, filterPropOutsideInstance, mapperUnSelect } = require("../utils");
+const { partModel } = require("./part.model");
+const { questionTypeModel } = require("./questionType.model");
+const { questionTagModel } = require("./questionTag.model");
+const { answerModel } = require("./answer.model");
+const { groupQuestionModel } = require("./groupQuestion.model");
 
 class QuestionDao extends TimestampModel {
     constructor({
@@ -103,6 +108,78 @@ class QuestionModel extends BaseModel {
         const results = data.map((row) => new QuestionDao(row));
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
+    }
+
+    async findByTestId(testId) {
+        const [questions, groupQuestions] = await Promise.all([
+            super.find({ test_id: testId }, { key: "question_order", value: "asc" }),
+            groupQuestionModel.findByTestId(testId),
+        ]);
+
+        if (!questions.length) return [];
+
+        let result = questions.map((row) => new QuestionDao(row));
+
+        result = result.map((t) => mapperUnSelect(t, ["created_at", "updated_at"]));
+
+        result = await Promise.all(
+            result.map(async (question) => {
+                const [part, questionType, tags, answers] = await Promise.all([
+                    partModel.findById(question.part_id),
+                    questionTypeModel.findById(question.question_type_id),
+                    questionTagModel.findByQuestionId(question.question_id, true),
+                    answerModel.findByQuestionId(question.question_id, true),
+                ]);
+
+                return {
+                    ...question,
+                    question_audio: parseValueToJson({ value: question.question_audio }),
+                    question_image: parseValueToJson({ value: question.question_image }),
+                    part: mapperUnSelect(part, ["created_at", "updated_at"]),
+                    questionType: mapperUnSelect(questionType, ["created_at", "updated_at"]),
+                    tags,
+                    answers,
+                };
+            })
+        );
+
+        const resultLength = result.length;
+        const newResults = [];
+        let groupQuestionIdFlat = -1;
+
+        for (let index = 0; index < resultLength; index++) {
+            const question = result[index];
+
+            if (!question.group_question_id) {
+                newResults.push(question);
+            } else if (groupQuestionIdFlat !== question.group_question_id) {
+                groupQuestionIdFlat = question.group_question_id;
+
+                const groupQuestion = groupQuestions.find(
+                    (item) => item.group_id === question.group_question_id
+                );
+
+                if (groupQuestion) {
+                    newResults.push({
+                        ...groupQuestion,
+                        group_questions: [question],
+                    });
+                }
+            } else {
+                const index = newResults.findIndex(
+                    (item) => item?.group_id === question.group_question_id
+                );
+
+                if (index === -1) continue;
+
+                newResults[index] = {
+                    ...newResults[index],
+                    group_questions: [...newResults[index].group_questions, question],
+                };
+            }
+        }
+
+        return newResults;
     }
 }
 

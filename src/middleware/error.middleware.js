@@ -11,6 +11,8 @@ const catchNotFound = (_req, _res, next) => {
 const catchError = (err, req, res, _next) => {
     const statusCode = err.status || 500;
 
+    console.log(`Error middleware [error.middleware]:::`, err);
+
     // Check if exist file request
     if (req.file) {
         FileLib.deleteFile(req.file.path);

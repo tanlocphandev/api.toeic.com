@@ -109,7 +109,7 @@ class TestModel extends BaseModel {
         const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
-        const where = filterPropOutsideInstance({ instance: PartDao, fields: query });
+        const where = filterPropOutsideInstance({ instance: TestDao, fields: query });
 
         const { totalPage, totalRow, data } = await super.findAndCountAll({
             where,

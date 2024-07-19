@@ -11,13 +11,7 @@ const { testPartModel } = require("../models/testPart.model");
 const { answerModel } = require("../models/answer.model");
 const { tagModel } = require("../models/tag.model");
 const { questionTagModel } = require("../models/questionTag.model");
-const {
-    generateSlug,
-    generateRandomString,
-    randomNumber,
-    mapValue,
-    asyncPool,
-} = require("../utils");
+const { generateSlug, generateRandomString, mapValue, asyncPool } = require("../utils");
 
 class TestService {
     static async create({ testName, testOfYear, testNoOfYear, duration }) {
@@ -350,7 +344,7 @@ class TestService {
                                     rawValue: question?.uploadImageCloud,
                                     isJson: true,
                                 }),
-                                question_text: mapValue({ rawValue: question?.text }),
+                                question_text: mapValue({ rawValue: question?.text_question }),
                                 question_transcript: mapValue({ rawValue: question?.transcript }),
                                 question_explain: mapValue({ rawValue: question?.explain }),
                                 question_type_id: questionType.type_id,

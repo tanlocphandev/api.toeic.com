@@ -80,7 +80,7 @@ class BaseModel {
         return this.db.execute(sql);
     }
 
-    async find(conditions = null) {
+    async find(conditions = null, order = {}) {
         let query = `SELECT * FROM ??`;
         let params = [this.tableName];
 
@@ -88,6 +88,11 @@ class BaseModel {
             const { query: whereQuery, value } = QueryHelper.buildWhereClause(conditions);
             query = `${query} ${whereQuery}`;
             params.push(...value);
+        }
+
+        if (!_.isEmpty(order)) {
+            params.push(order.key, raw(order.value));
+            query += ` ORDER BY ?? ?`;
         }
 
         const sql = format(query, params);

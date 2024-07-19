@@ -3,7 +3,8 @@
 const QueryHelper = require("../helpers/query.helper");
 const SoftDeleteModel = require("./common/softDelete.model");
 const BaseModel = require("./base.model");
-const { generateSlug, filterPropOutsideInstance } = require("../utils");
+const { filterPropOutsideInstance, mapperUnSelect } = require("../utils");
+const { tagModel } = require("./tag.model");
 
 class QuestionTagDao extends SoftDeleteModel {
     constructor({ question_id, tag_id, created_at, updated_at, deleted_at }) {
@@ -42,7 +43,35 @@ class QuestionTagModel extends BaseModel {
 
         if (!response) return null;
 
-        return new QuestionTagDao(response);
+        const result = new QuestionTagDao(response);
+
+        return result;
+    }
+
+    async findByQuestionId(questionId, isHiddenTime = false) {
+        const response = await super.find({ question_id: questionId });
+
+        if (!response.length) return [];
+
+        let results = response.map((row) => new QuestionTagDao(row));
+
+        results = await Promise.all(
+            results.map(async (question) => {
+                const tag = await tagModel.findById(question.tag_id);
+                return { ...question, tag };
+            })
+        );
+
+        if (!isHiddenTime) return results;
+
+        return results.map((t) => {
+            const tag = mapperUnSelect(t.tag, ["created_at", "updated_at"]);
+
+            return {
+                ...mapperUnSelect(t, ["created_at", "updated_at"]),
+                tag,
+            };
+        });
     }
 
     async find(filters) {
