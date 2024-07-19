@@ -29,7 +29,6 @@ class Cloudinary {
 
         const uploadResult = await this._cloudinary.uploader.upload(file, {
             ...options,
-            timeout: 6000,
         });
 
         return uploadResult;

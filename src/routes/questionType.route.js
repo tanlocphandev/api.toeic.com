@@ -17,6 +17,7 @@ const { USER_ROLES } = require("../constants");
 
 route.get(`/`, asyncHandler(questionTypeController.find));
 route.get("/:typeId", asyncHandler(questionTypeController.findById));
+route.get("/slug/:slug", asyncHandler(questionTypeController.findBySlug));
 
 route.use(authentication);
 route.use(checkRoles([USER_ROLES.ADMIN]));

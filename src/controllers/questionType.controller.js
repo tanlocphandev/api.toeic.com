@@ -44,6 +44,16 @@ class QuestionTypeController {
         }).send(res);
     }
 
+    async findBySlug(req, res) {
+        const { slug } = req.params;
+        const type = await QuestionTypeService.findBySlug(slug);
+
+        return new OK({
+            message: "Find question type successfully",
+            metadata: type,
+        }).send(res);
+    }
+
     async find(req, res) {
         const { results, pagination } = await QuestionTypeService.find(req.query);
 

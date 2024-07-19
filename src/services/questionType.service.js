@@ -4,6 +4,11 @@ const { ConflictRequestError, NotfoundRequestError } = require("../core/error.re
 const { questionTypeModel } = require("../models/questionType.model");
 
 class QuestionTypeService {
+    static async findBySlug(slug) {
+        const response = await questionTypeModel.findBySlug(slug);
+        return response;
+    }
+
     static async create({ typeName }) {
         // Check if the type already exists
         const foundType = await questionTypeModel.findByName(typeName);

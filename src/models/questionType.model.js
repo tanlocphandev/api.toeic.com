@@ -4,13 +4,16 @@ const QueryHelper = require("../helpers/query.helper");
 const { filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
 const TimestampModel = require("./common/timestamp.model");
+const { partModel } = require("./part.model");
 
 class QuestionTypeDao extends TimestampModel {
-    constructor({ type_id, type_name, created_at, updated_at }) {
+    constructor({ type_id, type_name, part_id, type_slug, created_at, updated_at }) {
         super({ created_at, updated_at });
 
         this.type_id = type_id;
         this.type_name = type_name;
+        this.part_id = part_id;
+        this.type_slug = type_slug;
     }
 
     static getInstance() {
@@ -18,6 +21,8 @@ class QuestionTypeDao extends TimestampModel {
             this.instance = new this({
                 type_id: 1,
                 type_name: 1,
+                part_id: 1,
+                type_slug: 1,
                 created_at: 1,
                 updated_at: 1,
             });
@@ -44,6 +49,16 @@ class QuestionTypeModel extends BaseModel {
         return new QuestionTypeDao(response);
     }
 
+    async findBySlug(slug) {
+        const response = await super.findOne({ type_slug: slug });
+
+        const result = new QuestionTypeDao(response);
+
+        const part = await partModel.findById(result.part_id);
+
+        return { ...result, part };
+    }
+
     async findByNameMultiple(typeNames = []) {
         const typeNamesParser = typeNames.map(({ typeName }) => typeName);
 
@@ -63,7 +78,11 @@ class QuestionTypeModel extends BaseModel {
 
         if (!response) return null;
 
-        return new QuestionTypeDao(response);
+        const result = new QuestionTypeDao(response);
+
+        const part = await partModel.findById(result.part_id);
+
+        return { ...result, part };
     }
 
     async find(filters) {
@@ -81,7 +100,14 @@ class QuestionTypeModel extends BaseModel {
 
         if (!data.length) return { results: [], pagination: { totalPage, totalRow, page, limit } };
 
-        const results = data.map((row) => new QuestionTypeDao(row));
+        let results = data.map((row) => new QuestionTypeDao(row));
+
+        results = await Promise.all(
+            results.map(async (row) => {
+                const part = await partModel.findById(row.part_id);
+                return { ...row, part };
+            })
+        );
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
     }

@@ -66,6 +66,22 @@ CREATE TABLE IF NOT EXISTS `question_types` (
     PRIMARY KEY (`type_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT = 1000;
 
+ALTER TABLE `question_types` ADD IF NOT EXISTS `part_id` VARCHAR(16) NOT NULL AFTER `type_name`;
+ALTER TABLE `question_types` ADD IF NOT EXISTS `type_slug` VARCHAR(255) DEFAULT NULL AFTER `type_name`;
+
+ALTER TABLE `question_types`
+DROP FOREIGN KEY IF EXISTS `fk_question_types_far_parts`;
+
+DROP INDEX IF EXISTS `fk_question_types_far_parts_idx` ON `question_types`;
+
+ALTER TABLE `question_types`
+ADD INDEX `fk_question_types_far_parts_idx` (`part_id` ASC),
+ADD CONSTRAINT `fk_question_types_far_parts`
+  FOREIGN KEY (`part_id`)
+  REFERENCES `parts` (`part_id`)
+  ON DELETE NO ACTION
+  ON UPDATE CASCADE;
+
 CREATE TABLE IF NOT EXISTS `tests` (
     `test_id` INT NOT NULL AUTO_INCREMENT,
     `test_name` VARCHAR(255) NOT NULL UNIQUE,

@@ -210,9 +210,18 @@ class TestService {
                                 connection,
                             });
 
+                            // If not found, create new question type
                             if (!foundQuestionType) {
+                                // found part
+                                const foundPart = payloadTestPart.find(
+                                    (p) => p[2] === question.part
+                                );
+                                const part_id = foundPart[0];
+
                                 const payload = {
                                     type_name: question.question_type,
+                                    type_slug: generateSlug(question.question_type),
+                                    part_id,
                                 };
 
                                 const addedQuestionType = await Transaction.insert({
