@@ -99,6 +99,33 @@ class GroupQuestionModel extends BaseModel {
         return results;
     }
 
+    async findByTestPartId({ testId, partId }) {
+        const response = await super.find({ test_id: testId });
+
+        if (!response.length) return [];
+
+        let results = response.map((row) => new GroupQuestionDao(row));
+
+        results = await Promise.all(
+            results.map(async (question) => {
+                const [part, questionType] = await Promise.all([
+                    partModel.findById(question.part_id),
+                    questionTypeModel.findById(question.question_type_id),
+                ]);
+
+                return {
+                    ...question,
+                    group_audio: parseValueToJson({ value: question.group_audio }),
+                    group_image: parseValueToJson({ value: question.group_image }),
+                    part,
+                    questionType,
+                };
+            })
+        );
+
+        return results;
+    }
+
     async find(filters) {
         const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
 

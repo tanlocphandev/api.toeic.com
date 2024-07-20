@@ -4,6 +4,8 @@ const QueryHelper = require("../helpers/query.helper");
 const TimestampModel = require("./common/timestamp.model");
 const BaseModel = require("./base.model");
 const { filterPropOutsideInstance } = require("../utils");
+const { testModel } = require("./test.model");
+const { partModel } = require("./part.model");
 
 class TestPartDao extends TimestampModel {
     constructor({ part_id, test_id, created_at, updated_at }) {
@@ -41,7 +43,33 @@ class TestPartModel extends BaseModel {
 
         if (!response) return null;
 
-        return new TestPartDao(response);
+        const testPart = new TestPartDao(response);
+
+        const [test, part] = await Promise.all([
+            testModel.findById(testPart.test_id),
+            partModel.findById(testPart.part_id),
+        ]);
+
+        return { ...testPart, test, part };
+    }
+
+    async findByPartId(partId) {
+        const response = await super.find({ part_id: partId });
+
+        if (!response.length) return [];
+
+        let result = response.map((row) => new TestPartDao(row));
+
+        result = await Promise.all(
+            result.map(async (t) => {
+                const test = await testModel.findById(t.test_id);
+                const part = await partModel.findById(t.part_id);
+
+                return { ...t, test, part };
+            })
+        );
+
+        return result;
     }
 
     async find(filters) {
