@@ -238,3 +238,66 @@ CREATE TABLE IF NOT EXISTS `answers` (
 DROP INDEX IF EXISTS `index_answer_order` ON `answers`;
 ALTER TABLE `answers` ADD INDEX `index_answer_order`(`answer_order` ASC);
 ALTER TABLE `answers` CHANGE `answer_image` `answer_image` JSON DEFAULT NULL;
+
+
+CREATE TABLE IF NOT EXISTS `scores` (
+  `score_id` INT NOT NULL AUTO_INCREMENT,
+  `score_name` VARCHAR(255) NOT NULL,
+  `score_status` ENUM('active', 'inactive') NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`score_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `score_details` (
+  `details_id` INT NOT NULL AUTO_INCREMENT,
+  `reading_score` INT NOT NULL,
+  `listening_score` INT NOT NULL,
+  `number_correct_answer` INT NOT NULL,
+  `score_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL,
+  FOREIGN KEY (`score_id`) REFERENCES `scores` (`score_id`),
+  PRIMARY KEY (`details_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `exams` (
+  `exam_id` INT NOT NULL AUTO_INCREMENT,
+  `exam_total_answer` INT NOT NULL,
+  `exam_count_question_correct` INT NOT NULL,
+  `exam_count_question_wrong` INT NOT NULL,
+  `exam_count_question_skip` INT NOT NULL,
+  `exam_type` ENUM('ONE_TEST', 'FULL_TEST') NOT NULL,
+  `exam_used_timer` INT NOT NULL,
+  `score_id` INT DEFAULT NULL,
+  `user_id` INT NOT NULL,
+  `test_id` INT NOT NULL,
+  `question_type_id` INT DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL,
+  FOREIGN KEY (`score_id`) REFERENCES `scores` (`score_id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
+  FOREIGN KEY (`question_type_id`) REFERENCES `question_types` (`type_id`),
+  PRIMARY KEY (`exam_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `exam_details` (
+  `detail_id` INT NOT NULL AUTO_INCREMENT,
+  `exam_id` INT NOT NULL,
+  `answer_id` INT DEFAULT NULL,
+  `question_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` datetime DEFAULT NULL,
+  FOREIGN KEY (`exam_id`) REFERENCES `exams` (`exam_id`),
+  FOREIGN KEY (`answer_id`) REFERENCES `answers` (`answer_id`),
+  FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
+  PRIMARY KEY (`detail_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
