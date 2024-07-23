@@ -274,6 +274,96 @@ class QuestionModel extends BaseModel {
 
         return { questions: newResults, questionOrders };
     }
+
+    async findTest({ conditions, testId, partId }) {
+        const [questions, groupQuestions] = await Promise.all([
+            super.find(conditions, { key: "question_order", value: "asc" }),
+            groupQuestionModel.findByTestPartId({ testId, partId }),
+        ]);
+
+        if (!questions.length) return [];
+
+        let result = questions.map((row) => new QuestionDao(row));
+
+        result = result.map((t) => mapperUnSelect(t, ["created_at", "updated_at"]));
+
+        result = await Promise.all(
+            result.map(async (question) => {
+                const [part, questionType, tags, answers] = await Promise.all([
+                    partModel.findById(question.part_id),
+                    questionTypeModel.findById(question.question_type_id),
+                    questionTagModel.findByQuestionId(question.question_id, true),
+                    answerModel.findByQuestionId(question.question_id, true),
+                ]);
+
+                return {
+                    ...question,
+                    question_audio: parseValueToJson({ value: question.question_audio }),
+                    question_image: parseValueToJson({ value: question.question_image }),
+                    part: mapperUnSelect(part, ["created_at", "updated_at"]),
+                    questionType: mapperUnSelect(questionType, ["created_at", "updated_at"]),
+                    tags,
+                    answers,
+                };
+            })
+        );
+
+        const resultLength = result.length;
+        const newResults = [];
+        let questionOrders = [];
+        let groupQuestionIdFlat = -1;
+
+        for (let index = 0; index < resultLength; index++) {
+            const question = result[index];
+
+            // Get question order
+            const indexQuestionOrder = questionOrders.findIndex(
+                (item) => item.part_number === question.part.part_number
+            );
+
+            if (indexQuestionOrder === -1) {
+                questionOrders.push({
+                    part_number: question.part.part_number,
+                    orders: [question.question_order],
+                });
+            } else {
+                questionOrders[indexQuestionOrder] = {
+                    ...questionOrders[indexQuestionOrder],
+                    orders: [...questionOrders[indexQuestionOrder].orders, question.question_order],
+                };
+            }
+
+            if (!question.group_question_id) {
+                newResults.push(question);
+            } else if (groupQuestionIdFlat !== question.group_question_id) {
+                groupQuestionIdFlat = question.group_question_id;
+
+                const groupQuestion = groupQuestions.find(
+                    (item) => item.group_id === question.group_question_id
+                );
+
+                if (groupQuestion) {
+                    newResults.push({
+                        ...groupQuestion,
+                        group_questions: [question],
+                    });
+                }
+            } else {
+                const index = newResults.findIndex(
+                    (item) => item?.group_id === question.group_question_id
+                );
+
+                if (index === -1) continue;
+
+                newResults[index] = {
+                    ...newResults[index],
+                    group_questions: [...newResults[index].group_questions, question],
+                };
+            }
+        }
+
+        return { questions: newResults, questionOrders };
+    }
 }
 
 module.exports = { QuestionDao, questionModel: new QuestionModel() };

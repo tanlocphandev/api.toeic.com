@@ -21,6 +21,15 @@ class QuestionController {
             metadata: await QuestionService.getByTestPartId({ testId, partId }),
         }).send(res);
     }
+
+    async getByTestQuestionTypeId(req, res) {
+        const { testId, questionTypeId } = req.params;
+
+        return new OK({
+            message: "Get questions successfully",
+            metadata: await QuestionService.getByTestQuestionId({ testId, questionTypeId }),
+        }).send(res);
+    }
 }
 
 module.exports = new QuestionController();

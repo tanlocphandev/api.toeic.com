@@ -12,4 +12,9 @@ const HEADERS = {
     SHOULD_LOGOUT: "x-required-logout",
 };
 
-module.exports = { USER_ROLES, HEADERS };
+const EXAM_TYPES = {
+    FULL_TEST: "FULL_TEST",
+    ONE_TEST: "ONE_TEST",
+};
+
+module.exports = { USER_ROLES, HEADERS, EXAM_TYPES };

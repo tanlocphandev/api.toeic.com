@@ -74,6 +74,8 @@ class QueryHelper {
         let condition = "";
         let formattedValue = "";
 
+        // console.log(`inputValue:::`, inputValue);
+
         if (typeof inputValue === "object") {
             Object.entries(inputValue).forEach(([key, value]) => {
                 condition = key;

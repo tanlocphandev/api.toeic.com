@@ -288,6 +288,8 @@ CREATE TABLE IF NOT EXISTS `exams` (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 
+ALTER TABLE `exams` CHANGE IF EXISTS `exam_total_answer` `exam_total_question` INT NOT NULL;
+
 CREATE TABLE IF NOT EXISTS `exam_details` (
   `detail_id` INT NOT NULL AUTO_INCREMENT,
   `exam_id` INT NOT NULL,

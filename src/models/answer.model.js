@@ -54,6 +54,8 @@ class AnswerModel extends BaseModel {
     }
 
     async findById(answerId) {
+        if (!answerId) return null;
+
         const response = await super.findOne({ answer_id: answerId });
 
         if (!response) return null;
