@@ -98,6 +98,7 @@ class ExamDetailsModel extends BaseModel {
                     const newQuestion = {
                         ...question,
                         answer_id: t.answer_id,
+                        answerCorrect,
                         question_audio: parseValueToJson({ value: question?.question_audio }),
                         question_image: parseValueToJson({ value: question?.question_image }),
                     };
@@ -173,7 +174,6 @@ class ExamDetailsModel extends BaseModel {
                             results.push({
                                 ...answerDetail,
                                 group: mapperUnSelect(groupParser, ["created_at", "updated_at"]),
-                                answerCorrect,
                                 group_questions: [
                                     {
                                         ...mapperUnSelect(newQuestion, [
@@ -193,7 +193,7 @@ class ExamDetailsModel extends BaseModel {
 
                     const row = {
                         ...answerDetail,
-                        answerCorrect,
+
                         question: {
                             ...mapperUnSelect(newQuestion, [
                                 "created_at",
