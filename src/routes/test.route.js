@@ -30,6 +30,7 @@ route.post(`/with-questions`, asyncHandler(testController.createWithUploadQuesti
 route.post(`/`, validateData(createTestSchema), asyncHandler(testController.create));
 route.get(`/`, asyncHandler(testController.find));
 route.patch(`/:testId`, validateData(createTestSchema), asyncHandler(testController.update));
+route.get("/with/years", asyncHandler(testController.getTestWithYears));
 route.get("/:testId", asyncHandler(testController.findById));
 
 module.exports = route;

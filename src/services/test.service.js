@@ -104,6 +104,10 @@ class TestService {
         };
     }
 
+    static async getTestWithYears() {
+        return await testModel.getTestWithYears();
+    }
+
     static async createWithUploadQuestion({
         testName,
         testOfYear,

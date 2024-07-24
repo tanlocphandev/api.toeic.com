@@ -60,6 +60,15 @@ class TestController {
             options: pagination,
         }).send(res);
     }
+
+    async getTestWithYears(req, res) {
+        const response = await TesService.getTestWithYears();
+
+        return new OK({
+            message: "Find test successfully",
+            metadata: response,
+        }).send(res);
+    }
 }
 
 module.exports = new TestController();

@@ -124,6 +124,24 @@ class TestModel extends BaseModel {
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
     }
+
+    async getTestWithYears() {
+        const response = await super.find(null, { key: "test_of_year", value: "ASC" });
+
+        if (!response.length) return [];
+
+        const tests = response.map((row) => new TestDao(row));
+        const years = [];
+        const testsLength = tests.length;
+
+        for (let i = 0; i < testsLength; i++) {
+            if (!years.includes(tests[i].test_of_year)) {
+                years.push(tests[i].test_of_year);
+            }
+        }
+
+        return { tests, years };
+    }
 }
 
 module.exports = { TestDao, testModel: new TestModel() };

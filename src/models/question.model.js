@@ -116,7 +116,7 @@ class QuestionModel extends BaseModel {
             groupQuestionModel.findByTestId(testId),
         ]);
 
-        if (!questions.length) return [];
+        if (!questions.length) return { results: [], questionOrders: [] };
 
         let result = questions.map((row) => new QuestionDao(row));
 
@@ -145,10 +145,28 @@ class QuestionModel extends BaseModel {
 
         const resultLength = result.length;
         const newResults = [];
+        let questionOrders = [];
         let groupQuestionIdFlat = -1;
 
         for (let index = 0; index < resultLength; index++) {
             const question = result[index];
+
+            // Get question order
+            const indexQuestionOrder = questionOrders.findIndex(
+                (item) => item.part_number === question.part.part_number
+            );
+
+            if (indexQuestionOrder === -1) {
+                questionOrders.push({
+                    part_number: question.part.part_number,
+                    orders: [question.question_order],
+                });
+            } else {
+                questionOrders[indexQuestionOrder] = {
+                    ...questionOrders[indexQuestionOrder],
+                    orders: [...questionOrders[indexQuestionOrder].orders, question.question_order],
+                };
+            }
 
             if (!question.group_question_id) {
                 newResults.push(question);
@@ -179,7 +197,7 @@ class QuestionModel extends BaseModel {
             }
         }
 
-        return newResults;
+        return { results: newResults, questionOrders };
     }
 
     async findByTestPartId({ testId, partId }) {

@@ -74,9 +74,9 @@ class QueryHelper {
         let condition = "";
         let formattedValue = "";
 
-        // console.log(`inputValue:::`, inputValue);
+        // console.log(`inputValue:::`, { type: typeof inputValue, value: inputValue });
 
-        if (typeof inputValue === "object") {
+        if (typeof inputValue === "object" && inputValue !== null) {
             Object.entries(inputValue).forEach(([key, value]) => {
                 condition = key;
                 formattedValue = value;
@@ -85,7 +85,7 @@ class QueryHelper {
             return { condition, value: formattedValue };
         }
 
-        const value = String(inputValue)?.toLowerCase();
+        const value = inputValue === null ? "null" : String(inputValue)?.toLowerCase();
 
         if (value === "null" || value === "undefined") {
             condition = "IS NULL";

@@ -7,9 +7,12 @@ class QuestionController {
     async getByTestId(req, res) {
         const { testId } = req.params;
 
+        const response = await QuestionService.getQuestionByTestId(testId);
+
         return new OK({
             message: "Get questions successfully",
-            metadata: await QuestionService.getQuestionByTestId(testId),
+            metadata: response.results,
+            options: response.questionOrders,
         }).send(res);
     }
 
