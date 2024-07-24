@@ -31,6 +31,14 @@ class UploadController {
             metadata: { ...dataUpload, totalAnswer, questionTypes, dataDefault: response },
         }).send(res);
     }
+
+    async uploadScore(req, res) {
+        const { scores = [] } = req.body;
+        return new OK({
+            message: "Upload score file successfully",
+            metadata: scores,
+        }).send(res);
+    }
 }
 
 module.exports = new UploadController();
