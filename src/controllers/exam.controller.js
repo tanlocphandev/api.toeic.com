@@ -1,5 +1,6 @@
 "use strict";
 
+const { USER_ROLES } = require("../constants");
 const { OK, Created } = require("../core/success.response");
 const ExamService = require("../services/exam.service");
 
@@ -13,6 +14,28 @@ class ExamController {
         const { examId } = req.params;
         const exam = await ExamService.getById(examId);
         return new OK({ message: "Get exam successfully", metadata: exam }).send(res);
+    }
+
+    async find(req, res) {
+        const user = req.user;
+
+        const query =
+            user.role === USER_ROLES.ADMIN
+                ? req.query
+                : {
+                      ...req.query,
+                      query: req.query
+                          ? `${req.query};user_id:${user.userId}`
+                          : `user_id:${user.userId}`,
+                  };
+
+        const { results, pagination } = await ExamService.find(query);
+
+        return new OK({
+            message: "Find exam successfully",
+            metadata: results,
+            options: pagination,
+        }).send(res);
     }
 }
 

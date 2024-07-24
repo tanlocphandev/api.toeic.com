@@ -1,4 +1,5 @@
 "use strict";
+const { USER_ROLES } = require("../constants");
 
 const { OK, Created } = require("../core/success.response");
 const TesService = require("../services/test.service");

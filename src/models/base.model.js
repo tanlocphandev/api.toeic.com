@@ -84,7 +84,7 @@ class BaseModel {
         let query = `SELECT * FROM ??`;
         let params = [this.tableName];
 
-        if (conditions) {
+        if (conditions && !_.isEmpty(conditions)) {
             const { query: whereQuery, value } = QueryHelper.buildWhereClause(conditions);
             query = `${query} ${whereQuery}`;
             params.push(...value);

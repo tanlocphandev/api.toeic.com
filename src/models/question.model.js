@@ -74,12 +74,23 @@ class QuestionModel extends BaseModel {
         return "question_id";
     }
 
-    async findById(questionId) {
+    async findById(questionId, withInclude = false) {
         const response = await super.findOne({ question_id: questionId });
 
         if (!response) return null;
 
-        return new QuestionDao(response);
+        const result = new QuestionDao(response);
+
+        if (!withInclude) return result;
+
+        // Get part, question type, tags
+        const [part, questionType, tags] = await Promise.all([
+            partModel.findById(result.part_id),
+            questionTypeModel.findById(result.question_type_id),
+            questionTagModel.findByQuestionId(result.question_id, true),
+        ]);
+
+        return { ...result, part, questionType, tags };
     }
 
     async findByQuestionOrder(questionOrder) {

@@ -89,7 +89,7 @@ class ExamDetailsModel extends BaseModel {
                     ]);
 
                     const [question, answers] = await Promise.all([
-                        questionModel.findById(t.question_id),
+                        questionModel.findById(t.question_id, true),
                         answerModel.findByQuestionId(t.question_id),
                     ]);
 

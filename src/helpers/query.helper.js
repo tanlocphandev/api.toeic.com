@@ -10,6 +10,7 @@ class QueryHelper {
         const offset = (page - 1) * limit;
         let _query = {};
         let order = {};
+        let isGetAll = query.all === "true" ? true : false;
 
         if (query.query) {
             const queryString = String(query.query).split(";");
@@ -36,7 +37,7 @@ class QueryHelper {
             order = { key: key, value: value?.toUpperCase() || "ASC" };
         }
 
-        return { page, limit, offset, query: _query, order };
+        return { page, limit, offset, query: _query, order, isGetAll };
     }
 
     static buildWhereClause(where) {

@@ -10,9 +10,11 @@ const { authentication, checkRoles } = require("../middleware/auth.middleware");
 const { USER_ROLES } = require("../constants");
 
 route.use(authentication);
-route.use(checkRoles([USER_ROLES.ADMIN]));
 
-route.post(`/`, validateData(examSchemaCreate), asyncHandler(examController.create));
+route.get(`/`, asyncHandler(examController.find));
 route.get(`/:examId`, asyncHandler(examController.getById));
+
+route.use(checkRoles([USER_ROLES.ADMIN]));
+route.post(`/`, validateData(examSchemaCreate), asyncHandler(examController.create));
 
 module.exports = route;

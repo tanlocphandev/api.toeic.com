@@ -4,6 +4,8 @@ const QueryHelper = require("../helpers/query.helper");
 const { filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
+const { questionTypeModel } = require("./questionType.model");
+const { testModel } = require("./test.model");
 
 class ExamDao extends SoftDeleteModel {
     constructor({
@@ -79,10 +81,26 @@ class ExamModel extends BaseModel {
     }
 
     async find(filters) {
-        const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
+        const { limit, page, offset, query, order, isGetAll } = QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
         const where = filterPropOutsideInstance({ instance: ExamDao, fields: query });
+
+        if (isGetAll) {
+            const response = await super.find(where, order);
+
+            let results = response.map((row) => new ExamDao(row));
+
+            results = await Promise.all(
+                results.map(async (row) => {
+                    const test = await testModel.findById(row.test_id);
+                    const questionType = await questionTypeModel.findById(row.question_type_id);
+                    return { ...row, test, questionType };
+                })
+            );
+
+            return { results, pagination: null };
+        }
 
         const { totalPage, totalRow, data } = await super.findAndCountAll({
             where,

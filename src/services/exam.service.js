@@ -120,6 +120,17 @@ class ExamService {
             questionType,
         };
     }
+
+    static async find(filters) {
+        const { results, pagination } = await examModel.find(filters);
+
+        if (!results.length) return { results: [], pagination: pagination };
+
+        return {
+            results: results,
+            pagination: pagination,
+        };
+    }
 }
 
 module.exports = ExamService;
