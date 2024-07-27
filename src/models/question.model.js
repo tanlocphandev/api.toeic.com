@@ -102,10 +102,42 @@ class QuestionModel extends BaseModel {
     }
 
     async find(filters) {
-        const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
+        const { limit, page, offset, query, order, isGetAll, withInclude } =
+            QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
         const where = filterPropOutsideInstance({ instance: QuestionDao, fields: query });
+
+        if (isGetAll) {
+            const response = await super.find(where, order);
+
+            let results = response.map((row) => new QuestionDao(row));
+
+            if (withInclude) {
+                results = await Promise.all(
+                    results.map(async (row) => {
+                        const [part, questionType, tags, answers] = await Promise.all([
+                            partModel.findById(row.part_id),
+                            questionTypeModel.findById(row.question_type_id),
+                            questionTagModel.findByQuestionId(row.question_id, true),
+                            answerModel.findByQuestionId(row.question_id, true),
+                        ]);
+
+                        return {
+                            ...row,
+                            question_audio: parseValueToJson({ value: row.question_audio }),
+                            question_image: parseValueToJson({ value: row.question_image }),
+                            part,
+                            questionType,
+                            tags,
+                            answers,
+                        };
+                    })
+                );
+            }
+
+            return { results, pagination: null };
+        }
 
         const { totalPage, totalRow, data } = await super.findAndCountAll({
             where,
@@ -116,7 +148,22 @@ class QuestionModel extends BaseModel {
 
         if (!data.length) return { results: [], pagination: { totalPage, totalRow, page, limit } };
 
-        const results = data.map((row) => new QuestionDao(row));
+        let results = data.map((row) => new QuestionDao(row));
+
+        if (withInclude) {
+            results = await Promise.all(
+                results.map(async (row) => {
+                    const [part, questionType, tags, answers] = await Promise.all([
+                        partModel.findById(row.part_id),
+                        questionTypeModel.findById(row.question_type_id),
+                        questionTagModel.findByQuestionId(row.question_id, true),
+                        answerModel.findByQuestionId(row.question_id, true),
+                    ]);
+
+                    return { ...row, part, questionType, tags, answers };
+                })
+            );
+        }
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
     }

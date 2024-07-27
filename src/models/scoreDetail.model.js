@@ -61,10 +61,18 @@ class ScoreDetailsModel extends BaseModel {
     }
 
     async find(filters) {
-        const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
+        const { limit, page, offset, query, order, isGetAll } = QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
         const where = filterPropOutsideInstance({ instance: ScoreDetailsDao, fields: query });
+
+        if (isGetAll) {
+            const response = await super.find(where, order);
+
+            let results = response.map((row) => new ScoreDetailsDao(row));
+
+            return { results, pagination: null };
+        }
 
         const { totalPage, totalRow, data } = await super.findAndCountAll({
             where,

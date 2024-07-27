@@ -5,7 +5,7 @@ const { scoreModel } = require("../models/score.model");
 const { scoreDetailsModel } = require("../models/scoreDetail.model");
 const Transaction = require("../db/transaction.db");
 
-class ScoreService {
+class ScoreDetailsService {
     static async create({ scoreName, scores = [] }) {
         const connection = await Transaction.startTransaction();
 
@@ -86,23 +86,12 @@ class ScoreService {
     }
 
     static async update(scoreId, body) {
-        const foundScoreByName = await scoreModel.findByName(body?.score_name);
-
-        if (foundScoreByName && foundScoreByName.score_id !== scoreId) {
-            throw new ConflictRequestError(
-                `Bảng điểm có tên ${body.score_name} đã tồn tại`,
-                undefined,
-                {
-                    score_name: `Bảng điểm có tên ${body.score_name} đã tồn tại`,
-                }
-            );
+        if (body.id || body.details_id) {
+            delete body?.id;
+            delete body?.details_id;
         }
 
-        if (body.id) {
-            delete body.id;
-        }
-
-        return await scoreModel.updateById(scoreId, body);
+        return await scoreDetailsModel.updateById(scoreId, body);
     }
 
     static async findById(scoreId) {
@@ -114,7 +103,7 @@ class ScoreService {
     }
 
     static async find(filters) {
-        const { results, pagination } = await scoreModel.find(filters);
+        const { results, pagination } = await scoreDetailsModel.find(filters);
 
         if (!results.length) return { results: [], pagination: pagination };
 
@@ -125,4 +114,4 @@ class ScoreService {
     }
 }
 
-module.exports = ScoreService;
+module.exports = ScoreDetailsService;

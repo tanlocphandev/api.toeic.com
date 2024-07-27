@@ -33,6 +33,16 @@ class QuestionController {
             metadata: await QuestionService.getByTestQuestionId({ testId, questionTypeId }),
         }).send(res);
     }
+
+    async find(req, res) {
+        const { results, pagination } = await QuestionService.find(req.query);
+
+        return new OK({
+            message: "Find questions successfully",
+            metadata: results,
+            options: pagination,
+        }).send(res);
+    }
 }
 
 module.exports = new QuestionController();

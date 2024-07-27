@@ -28,6 +28,17 @@ class QuestionService {
 
         return response;
     }
+
+    static async find(filters) {
+        const { results, pagination } = await questionModel.find(filters);
+
+        if (!results.length) return { results: [], pagination: pagination };
+
+        return {
+            results: results,
+            pagination: pagination,
+        };
+    }
 }
 
 module.exports = QuestionService;

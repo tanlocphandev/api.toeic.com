@@ -1,6 +1,8 @@
 "use strict";
 
 const { OK } = require("../core/success.response");
+const cloudinary = require("../libs/cloudinary.lib");
+const FileLib = require("../libs/file.lib");
 const XLSX = require("../libs/xlsx.lib");
 const UploadServicer = require("../services/upload.service");
 
@@ -37,6 +39,28 @@ class UploadController {
         return new OK({
             message: "Upload score file successfully",
             metadata: scores,
+        }).send(res);
+    }
+
+    async uploadAudio(req, res) {
+        const { file } = req;
+        const { testOfYear, testNoOfYear } = req.body;
+
+        const publicId = `toeic/${testOfYear}/test${testNoOfYear}`;
+
+        const response = await cloudinary.upload({
+            file: file.path,
+            folder: "audio",
+            publicId: publicId,
+            resource_type: "video",
+        });
+
+        // After read file success, delete file
+        FileLib.deleteFile(file.path);
+
+        return new OK({
+            message: "Upload audio file successfully",
+            metadata: cloudinary.getInfoUpload(response),
         }).send(res);
     }
 }

@@ -68,18 +68,26 @@ class TestService {
     }
 
     static async update(testId, data) {
-        // Check if the tag already exists
-        const foundTag = await testModel.findByName(data.test_name);
+        // Check if the test already exists
+        const foundTest = await testModel.findOne({
+            test_no_of_year: data.testOfYear,
+            test_of_year: data.testOfYear,
+        });
 
-        if (foundTag && foundTag.test_id !== testId) {
-            throw new ConflictRequestError("Tên tag đã tồn tại", undefined, {
-                tagName: "Tên tag đã tồn tại",
+        if (foundTest && foundTest.test_id !== testId) {
+            throw new ConflictRequestError("Đề thi đã tồn tại", undefined, {
+                testName: "Đề thi đã tồn tại",
             });
         }
 
         const payload = {
-            ...data,
-            tag_slug: generateSlug(data.test_name),
+            test_name: data.testName,
+            test_slug: generateSlug(data.testName),
+            test_of_year: data.testOfYear,
+            test_duration: data.duration,
+            test_tag: `#TOEIC-${data.testOfYear}`,
+            test_no_of_year: data.testNoOfYear,
+            ...(data.audio ? { test_audio: JSON.stringify(data.audio) } : {}),
         };
 
         return await testModel.updateById(testId, payload);
@@ -113,6 +121,7 @@ class TestService {
         testOfYear,
         testNoOfYear,
         duration,
+        audio,
         questions = [],
         parts = [],
     }) {
@@ -146,7 +155,7 @@ class TestService {
                 test_duration: duration,
                 test_tag: `#TOEIC-${testOfYear}`,
                 test_no_of_year: testNoOfYear,
-                test_audio: null,
+                test_audio: JSON.stringify(audio),
             };
 
             // insert new test

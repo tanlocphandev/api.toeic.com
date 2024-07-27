@@ -40,6 +40,19 @@ route.post(
 );
 
 route.post(
+    "/local/audio",
+    [
+        uploadDisk.single("file"),
+        validateFileNotFound(`Không tìm thấy file excel upload!`),
+        validateExtFile({
+            extFile: ["mp3", "wav", "flac", "mp4"],
+            message: "File upload chỉ cho phép có đuôi .mp3, .wav, .flac, .mp4!",
+        }),
+    ],
+    asyncHandler(uploadController.uploadAudio)
+);
+
+route.post(
     "/local/score",
     [
         uploadDisk.single("file"),

@@ -11,6 +11,7 @@ class QueryHelper {
         let _query = {};
         let order = {};
         let isGetAll = query.all === "true" ? true : false;
+        let withInclude = query.include === "true" ? true : false;
 
         if (query.query) {
             const queryString = String(query.query).split(";");
@@ -37,7 +38,7 @@ class QueryHelper {
             order = { key: key, value: value?.toUpperCase() || "ASC" };
         }
 
-        return { page, limit, offset, query: _query, order, isGetAll };
+        return { page, limit, offset, query: _query, order, isGetAll, withInclude };
     }
 
     static buildWhereClause(where) {

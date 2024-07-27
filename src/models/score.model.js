@@ -1,5 +1,6 @@
 "use strict";
 
+const { raw } = require("mysql2");
 const QueryHelper = require("../helpers/query.helper");
 const { filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
@@ -40,7 +41,9 @@ class ScoreModel extends BaseModel {
     }
 
     async findByName(name) {
-        const response = await super.findOne({ score_name: name });
+        const response = await super.findOne({
+            score_name: name,
+        });
 
         if (!response) return null;
 
@@ -56,10 +59,18 @@ class ScoreModel extends BaseModel {
     }
 
     async find(filters) {
-        const { limit, page, offset, query, order } = QueryHelper.getPagination(filters);
+        const { limit, page, offset, query, order, isGetAll } = QueryHelper.getPagination(filters);
 
         // Check if exist query in request or not if exist in instance remove it
         const where = filterPropOutsideInstance({ instance: ScoreDao, fields: query });
+
+        if (isGetAll) {
+            const response = await super.find(where, order);
+
+            let results = response.map((row) => new ScoreDao(row));
+
+            return { results, pagination: null };
+        }
 
         const { totalPage, totalRow, data } = await super.findAndCountAll({
             where,
