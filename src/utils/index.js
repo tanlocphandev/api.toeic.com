@@ -204,6 +204,21 @@ const asyncPool = (poolLimit, array, iteratorFn) => {
     return enqueue().then(() => Promise.all(ret));
 };
 
+/**
+ * Filters out invalid properties from an object.
+ *
+ * @param {object} inputObject - The object to filter.
+ * @returns {object} - A new object with only the valid properties.
+ */
+const filterInvalidProperties = (inputObject) => {
+    return Object.entries(inputObject).reduce((filteredObject, [key, value]) => {
+        if (value !== undefined && value !== null) {
+            filteredObject[key] = value;
+        }
+        return filteredObject;
+    }, {});
+};
+
 module.exports = {
     generateRandomString,
     getInfoData,
@@ -217,4 +232,5 @@ module.exports = {
     mapValue,
     asyncPool,
     parseValueToJson,
+    filterInvalidProperties,
 };

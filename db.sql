@@ -303,3 +303,37 @@ CREATE TABLE IF NOT EXISTS `exam_details` (
   FOREIGN KEY (`question_id`) REFERENCES `questions` (`question_id`),
   PRIMARY KEY (`detail_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `documents` (
+  `doc_id` INT NOT NULL AUTO_INCREMENT,
+  `doc_title` VARCHAR(255) NOT NULL,
+  `doc_desc` VARCHAR(255) NOT NULL,
+  `doc_slug` VARCHAR(255) NOT NULL,
+  `doc_type` ENUM('audio', 'video', 'text', 'document') NOT NULL,
+  `doc_audio` JSON DEFAULT NULL,
+  `doc_video` JSON DEFAULT NULL,
+  `doc_text` TEXT DEFAULT NULL,
+  `doc_pdf` JSON DEFAULT NULL,
+  `doc_link` TEXT DEFAULT NULL,
+  `doc_thumbnail` JSON DEFAULT NULL,
+  `doc_status` ENUM('active', 'inactive') DEFAULT 'active',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`doc_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `document_sections` (
+  `section_id` INT NOT NULL AUTO_INCREMENT,
+  `section_title` VARCHAR(255),
+  `section_link` VARCHAR(255),
+  `section_video` JSON DEFAULT NULL,
+  `section_audio` JSON DEFAULT NULL,
+  `section_status` ENUM('active', 'inactive') DEFAULT 'active',
+  `doc_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`doc_id`) REFERENCES `documents` (`doc_id`),
+  PRIMARY KEY (`section_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
