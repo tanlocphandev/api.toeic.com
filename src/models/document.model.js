@@ -3,7 +3,7 @@
 const QueryHelper = require("../helpers/query.helper");
 const TimestampModel = require("./common/timestamp.model");
 const BaseModel = require("./base.model");
-const { filterPropOutsideInstance } = require("../utils");
+const { filterPropOutsideInstance, parserPropsJson } = require("../utils");
 
 class DocumentDao extends TimestampModel {
     constructor({
@@ -78,10 +78,12 @@ class DocumentModel extends BaseModel {
 
         const result = new DocumentDao(response);
 
-        if (!withInclude) return result;
+        if (!withInclude) {
+            return parserPropsJson(result, ["doc_audio", "doc_video", "doc_pdf", "doc_thumbnail"]);
+        }
 
         // Get sections;
-        return { ...result };
+        return parserPropsJson(result, ["doc_audio", "doc_video", "doc_pdf", "doc_thumbnail"]);
     }
 
     async findOne(conditions) {
@@ -121,6 +123,10 @@ class DocumentModel extends BaseModel {
         if (!data.length) return { results: [], pagination: { totalPage, totalRow, page, limit } };
 
         let results = data.map((row) => new DocumentDao(row));
+
+        results = results.map((row) =>
+            parserPropsJson(row, ["doc_audio", "doc_video", "doc_pdf", "doc_thumbnail"])
+        );
 
         if (withInclude) {
             // get sections of document;

@@ -8,10 +8,9 @@ const { uploadDisk } = require("../configs/multer.config");
 const {
     validateExtFile,
     validateFileNotFound,
-    validateData,
     validateFieldsInFile,
+    validateLimitSize,
 } = require("../middleware/validate.middleware");
-const { uploadQuestionSchema } = require("../schemas/upload.schema");
 
 route.post(
     "/local/xlsx",
@@ -50,6 +49,46 @@ route.post(
         }),
     ],
     asyncHandler(uploadController.uploadAudio)
+);
+
+route.post(
+    "/local/video",
+    [
+        uploadDisk.single("file"),
+        validateFileNotFound(`Không tìm thấy file excel upload!`),
+        validateExtFile({
+            extFile: ["mp4", "avi", "MTS", "M2TS", "TS", "mov", "qt", "wmv"],
+            message: `File upload chỉ cho phép có đuôi "mp4", "avi", "MTS", "M2TS", "TS", "mov", "qt", "wmv"!`,
+        }),
+    ],
+    asyncHandler(uploadController.uploadVideo)
+);
+
+route.post(
+    "/local/image",
+    [
+        uploadDisk.single("file"),
+        validateFileNotFound(`Không tìm thấy file excel upload!`),
+        validateExtFile({
+            extFile: ["jpg", "jpeg", "png", "webp", "JPG", "JPEG", "PNG"],
+            message: `File upload chỉ cho phép có đuôi "jpg", "jpeg", "png", "webp" "JPG", "JPEG", "PNG" !`,
+        }),
+    ],
+    asyncHandler(uploadController.uploadImage)
+);
+
+route.post(
+    "/local/pdf",
+    [
+        uploadDisk.single("file"),
+        validateFileNotFound(`Không tìm thấy file excel upload!`),
+        validateExtFile({
+            extFile: ["pdf"],
+            message: "File upload chỉ cho phép có đuôi .pdf!",
+        }),
+        validateLimitSize(10),
+    ],
+    asyncHandler(uploadController.uploadPdf)
 );
 
 route.post(

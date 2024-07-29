@@ -5,6 +5,7 @@ const { ServerError, BadRequestError, NotfoundRequestError } = require("../core/
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const FileLib = require("../libs/file.lib");
 const XLSX = require("../libs/xlsx.lib");
+const { limitSizeFile } = require("../utils");
 
 const validateData = (schema) => {
     return asyncHandler(async (req, _, next) => {
@@ -89,9 +90,30 @@ const validateFieldsInFile = ({ fields = [], keyBody = "body" }) => {
     });
 };
 
+/**
+ * Validates the size of a file and throws an error if it exceeds the specified limit.
+ *
+ * @param {number} limit - The maximum size limit of the file in megabytes (MB).
+ * @return {function} - An async handler function that validates the file size and calls the next middleware function.
+ * @throws {BadRequestError} - If the file size exceeds the specified limit.
+ */
+const validateLimitSize = (limit) => {
+    return asyncHandler(async (req, _, next) => {
+        const { file } = req;
+
+        if (file.size > limitSizeFile(limit)) {
+            FileLib.deleteFile(file.path);
+            throw new BadRequestError(`File vượt quá ${limit}MB! Vui lòng upload file khác!`);
+        }
+
+        next();
+    });
+};
+
 module.exports = {
     validateData,
     validateExtFile,
     validateFileNotFound,
     validateFieldsInFile,
+    validateLimitSize,
 };

@@ -219,6 +219,39 @@ const filterInvalidProperties = (inputObject) => {
     }, {});
 };
 
+/**
+ * Calculates the size of a file in bytes based on its size in megabytes.
+ *
+ * @param {number} value - The size of the file in megabytes.
+ * @return {number} The size of the file in bytes. (Mb)
+ */
+const limitSizeFile = (value) => {
+    return value * 1024 * 1024;
+};
+
+/**
+ * Parses the given object and returns a new object with specified properties parsed to JSON.
+ *
+ * @param {object} object - The object to parse. Defaults to an empty object.
+ * @param {string[]} keyInput - An array of keys to parse to JSON. Defaults to an empty array.
+ * @return {object} A new object with the specified properties parsed to JSON.
+ */
+const parserPropsJson = (object = {}, keyInput = []) => {
+    return Object.entries(object).reduce((result, [key, value]) => {
+        if (keyInput.includes(key)) {
+            return {
+                ...result,
+                [key]: parseValueToJson({ value }),
+            };
+        }
+
+        return {
+            ...result,
+            [key]: value,
+        };
+    }, {});
+};
+
 module.exports = {
     generateRandomString,
     getInfoData,
@@ -233,4 +266,6 @@ module.exports = {
     asyncPool,
     parseValueToJson,
     filterInvalidProperties,
+    limitSizeFile,
+    parserPropsJson,
 };

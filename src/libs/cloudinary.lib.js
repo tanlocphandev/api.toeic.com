@@ -17,7 +17,13 @@ class Cloudinary {
         });
     }
 
-    async upload({ file, folder = "audio", publicId = null, resource_type = "image" }) {
+    upload({
+        file,
+        folder = "audio",
+        publicId = null,
+        resource_type = "image",
+        isLagerFile = false,
+    }) {
         const options = {
             use_filename: true,
             unique_filename: false,
@@ -27,11 +33,42 @@ class Cloudinary {
             resource_type,
         };
 
-        const uploadResult = await this._cloudinary.uploader.upload(file, {
-            ...options,
+        return new Promise(async (resolve, reject) => {
+            try {
+                if (isLagerFile) {
+                    await this._cloudinary.uploader.upload_large(
+                        file,
+                        {
+                            ...options,
+                            chunk_size: 6000000, // 6 MB
+                        },
+                        (error, result) => {
+                            if (error) {
+                                return reject(error);
+                            } else {
+                                return resolve(result);
+                            }
+                        }
+                    );
+                } else {
+                    await this._cloudinary.uploader.upload(
+                        file,
+                        {
+                            ...options,
+                        },
+                        (error, result) => {
+                            if (error) {
+                                return reject(error);
+                            } else {
+                                return resolve(result);
+                            }
+                        }
+                    );
+                }
+            } catch (error) {
+                reject(error);
+            }
         });
-
-        return uploadResult;
     }
 
     url({ publicId, resource_type = "image", format = "png" }) {
@@ -48,11 +85,14 @@ class Cloudinary {
             public_id: response.public_id,
             format: response.format,
             resource_type: response.resource_type,
-            public_id: response.public_id,
             url: response.url,
             secure_url: response.secure_url,
             duration: response.duration,
         };
+    }
+
+    async destroy(publicId) {
+        return await this._cloudinary.uploader.destroy(publicId);
     }
 
     get instance() {

@@ -1,8 +1,13 @@
 "use strict";
 
-const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
+const {
+    ConflictRequestError,
+    NotfoundRequestError,
+    BadRequestError,
+} = require("../core/error.response");
 const { documentModel } = require("../models/document.model");
-const { mapValue, filterInvalidProperties } = require("../utils");
+const { mapValue, filterInvalidProperties, generateSlug } = require("../utils");
+const cloudinary = require("../libs/cloudinary.lib");
 
 class DocumentService {
     static async create({
@@ -16,6 +21,8 @@ class DocumentService {
         doc_pdf = null,
         doc_thumbnail = null,
     }) {
+        // throw new BadRequestError(`Maintained in next version!`);
+
         // Check if the document already exists
         const foundDoc = await documentModel.findOne({
             doc_title,
@@ -31,14 +38,15 @@ class DocumentService {
 
         const payload = {
             doc_title,
+            doc_slug: generateSlug(doc_title),
             doc_type,
             doc_desc,
-            doc_audio: mapValue({ raw: doc_audio, isJson: true }),
-            doc_video: mapValue({ raw: doc_video, isJson: true }),
-            doc_text: mapValue({ raw: doc_text }),
-            doc_link: mapValue({ raw: doc_link }),
-            doc_pdf: mapValue({ raw: doc_pdf, isJson: true }),
-            doc_thumbnail: mapValue({ raw: doc_thumbnail, isJson: true }),
+            doc_audio: mapValue({ rawValue: doc_audio, isJson: true }),
+            doc_video: mapValue({ rawValue: doc_video, isJson: true }),
+            doc_text: mapValue({ rawValue: doc_text }),
+            doc_link: mapValue({ rawValue: doc_link }),
+            doc_pdf: mapValue({ rawValue: doc_pdf, isJson: true }),
+            doc_thumbnail: mapValue({ rawValue: doc_thumbnail, isJson: true }),
         };
 
         const newDoc = await documentModel.insert(payload);
@@ -48,6 +56,9 @@ class DocumentService {
 
     static async update(docId, body) {
         const newBody = filterInvalidProperties(body);
+        const foundDoc = await documentModel.findById(docId);
+
+        if (!foundDoc) throw new NotfoundRequestError(`Không tìm thấy tài liệu có id ${docId}`);
 
         if (newBody.doc_title && newBody.doc_type) {
             // Check if the document already exists
@@ -56,12 +67,64 @@ class DocumentService {
                 doc_type: newBody.doc_type,
             });
 
-            if (foundDoc && foundDoc.doc_id !== docId) {
+            if (foundDoc && foundDoc.doc_id !== +docId) {
                 throw new ConflictRequestError("Tiêu đề và loại tài liệu đã tồn tại", undefined, {
                     title: "Tiêu đề và loại tài liệu đã tồn tại",
                     type: "Tiêu đề và loại tài liệu đã tồn tại",
                 });
             }
+        }
+
+        if (newBody.doc_title) newBody.doc_slug = generateSlug(newBody.doc_title);
+
+        if (newBody.doc_type) newBody.doc_type = newBody.doc_type.toLowerCase();
+
+        if (newBody.doc_audio) {
+            if (
+                foundDoc.doc_audio?.public_id &&
+                newBody.doc_audio?.public_id !== foundDoc.doc_audio?.public_id
+            ) {
+                // remove file from cloudinary
+                await cloudinary.destroy(foundDoc.doc_audio?.public_id);
+            }
+
+            newBody.doc_audio = mapValue({ rawValue: newBody.doc_audio, isJson: true });
+        }
+
+        if (newBody.doc_video) {
+            if (
+                foundDoc.doc_video?.public_id &&
+                newBody.doc_video?.public_id !== foundDoc.doc_video?.public_id
+            ) {
+                // remove file from cloudinary
+                await cloudinary.destroy(foundDoc.doc_video?.public_id);
+            }
+
+            newBody.doc_video = mapValue({ rawValue: newBody.doc_video, isJson: true });
+        }
+
+        if (newBody.doc_pdf) {
+            if (
+                foundDoc.doc_pdf?.public_id &&
+                newBody.doc_pdf?.public_id !== foundDoc.doc_pdf?.public_id
+            ) {
+                // remove file from cloudinary
+                await cloudinary.destroy(foundDoc.doc_pdf?.public_id);
+            }
+
+            newBody.doc_pdf = mapValue({ rawValue: newBody.doc_pdf, isJson: true });
+        }
+
+        if (newBody.doc_thumbnail) {
+            if (
+                foundDoc.doc_thumbnail?.public_id &&
+                newBody.doc_thumbnail?.public_id !== foundDoc.doc_thumbnail?.public_id
+            ) {
+                // remove file from cloudinary
+                await cloudinary.destroy(foundDoc.doc_thumbnail?.public_id);
+            }
+
+            newBody.doc_thumbnail = mapValue({ rawValue: newBody.doc_thumbnail, isJson: true });
         }
 
         return await documentModel.updateById(docId, newBody);
@@ -87,7 +150,30 @@ class DocumentService {
     }
 
     static async delete(docId) {
-        return "ok";
+        const foundDoc = await documentModel.findById(docId);
+        if (!foundDoc) throw new NotfoundRequestError(`Không tìm thấy tài liệu có id ${docId}`);
+
+        if (foundDoc.doc_audio?.public_id) {
+            // remove file from cloudinary
+            await cloudinary.destroy(foundDoc.doc_audio?.public_id);
+        }
+
+        if (foundDoc.doc_video?.public_id) {
+            // remove file from cloudinary
+            await cloudinary.destroy(foundDoc.doc_video?.public_id);
+        }
+
+        if (foundDoc.doc_pdf?.public_id) {
+            // remove file from cloudinary
+            await cloudinary.destroy(foundDoc.doc_pdf?.public_id);
+        }
+
+        if (foundDoc.doc_thumbnail?.public_id) {
+            // remove file from cloudinary
+            await cloudinary.destroy(foundDoc.doc_thumbnail?.public_id);
+        }
+
+        return await documentModel.deleteOne({ doc_id: docId });
     }
 }
 
