@@ -7,10 +7,12 @@ const examController = require("../controllers/exam.controller");
 const { examSchemaCreate } = require("../schemas/exam.schema");
 const { validateData } = require("../middleware/validate.middleware");
 const { authentication } = require("../middleware/auth.middleware");
+const { READ_ANY } = require("../constants");
+const grantAccess = require("../middleware/rbac.middleware");
 
 route.use(authentication);
 
-route.get(`/`, asyncHandler(examController.find));
+route.get(`/`, grantAccess(READ_ANY, "exam"), asyncHandler(examController.find));
 route.get(`/:examId`, asyncHandler(examController.getById));
 route.post(`/`, validateData(examSchemaCreate), asyncHandler(examController.create));
 

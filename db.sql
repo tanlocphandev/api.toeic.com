@@ -381,3 +381,49 @@ ALTER TABLE `comments` ADD IF NOT EXISTS `comment_status` ENUM('active', 'inacti
 ALTER TABLE `comments` ADD IF NOT EXISTS `comment_count_sub` INT DEFAULT 0 AFTER `comment_parentId`;
 ALTER TABLE `comments` DROP COLUMN IF EXISTS `comment_count_sub`;
 
+
+CREATE TABLE IF NOT EXISTS `resources` (
+  `resource_id` INT NOT NULL AUTO_INCREMENT,
+  `resource_name` VARCHAR(255) NOT NULL,
+  `resource_desc` VARCHAR(255),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`resource_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `roles` (
+  `role_id` INT NOT NULL AUTO_INCREMENT,
+  `role_name` ENUM('admin', 'user', 'teacher') NOT NULL,
+  `role_slug` VARCHAR(255) NOT NULL UNIQUE,
+  `role_desc` VARCHAR(255),
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  PRIMARY KEY (`role_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `role_grants` (
+  `grant_id` INT NOT NULL AUTO_INCREMENT,
+  `grant_actions` JSON NOT NULL,  -- ['create:any', 'read:any', 'update:any', 'delete:any', 'create:own', 'read:own', 'update:own', 'delete:own']
+  `grant_attribute` VARCHAR(255) DEFAULT '*', -- '*' or '* !column, !column2, ...'
+  `role_id` INT NOT NULL,
+  `resource_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
+  FOREIGN KEY (`resource_id`) REFERENCES `resources` (`resource_id`),
+  PRIMARY KEY (`grant_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE IF NOT EXISTS `users_roles` (
+  `user_id` INT NOT NULL,
+  `role_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
+  PRIMARY KEY (`user_id`, `role_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
