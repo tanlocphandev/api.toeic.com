@@ -337,3 +337,30 @@ CREATE TABLE IF NOT EXISTS `document_sections` (
   FOREIGN KEY (`doc_id`) REFERENCES `documents` (`doc_id`),
   PRIMARY KEY (`section_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+DROP TABLE IF EXISTS `document_sections`;
+
+CREATE TABLE IF NOT EXISTS `notes` (
+  `note_id` INT NOT NULL AUTO_INCREMENT,
+  `note_name` VARCHAR(255) NOT NULL,
+  `user_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  PRIMARY KEY (`note_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `note_details` (
+  `detail_id` INT NOT NULL AUTO_INCREMENT,
+  `detail_title` VARCHAR(255),
+  `detail_content` VARCHAR(255),
+  `note_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`),
+  PRIMARY KEY (`detail_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
+
+
+
