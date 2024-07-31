@@ -19,5 +19,6 @@ route.use(`${APP_CONFIGS.PREFIX}/score-details`, require("./scoreDetails.route")
 route.use(`${APP_CONFIGS.PREFIX}/document`, require("./document.route"));
 route.use(`${APP_CONFIGS.PREFIX}/note`, require("./note.route"));
 route.use(`${APP_CONFIGS.PREFIX}/note-details`, require("./noteDetails.route"));
+route.use(`${APP_CONFIGS.PREFIX}/comment`, require("./comment.route"));
 
 module.exports = route;

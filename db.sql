@@ -358,9 +358,26 @@ CREATE TABLE IF NOT EXISTS `note_details` (
   `note_id` INT NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`),
+  FOREIGN KEY (`note_id`) REFERENCES `notes` (`note_id`) ON DELETE CASCADE ON UPDATE CASCADE,
   PRIMARY KEY (`detail_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
+CREATE TABLE IF NOT EXISTS `comments` (
+  `comment_id` INT NOT NULL AUTO_INCREMENT,
+  `comment_content` VARCHAR(255) NOT NULL,
+  `comment_left` INT NOT NULL,
+  `comment_right` INT NOT NULL,
+  `comment_parentId` INT DEFAULT NULL,
+  `user_id` INT NOT NULL,
+  `test_id` INT NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
+  FOREIGN KEY (`test_id`) REFERENCES `tests` (`test_id`),
+  PRIMARY KEY (`comment_id`)
+) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
+ALTER TABLE `comments` ADD IF NOT EXISTS `comment_status` ENUM('active', 'inactive') DEFAULT 'active' AFTER `comment_parentId`;
+ALTER TABLE `comments` ADD IF NOT EXISTS `comment_count_sub` INT DEFAULT 0 AFTER `comment_parentId`;
+ALTER TABLE `comments` DROP COLUMN IF EXISTS `comment_count_sub`;
 

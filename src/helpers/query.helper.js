@@ -57,9 +57,11 @@ class QueryHelper {
                 const { condition, value: _value } = QueryHelper.formatValue(value);
                 let isObjectOfRaw = false;
 
+                // { condition: "?", value: { id: 1 } } <=> { '?': { id: 1 } }
                 if (condition === "?" || typeof value === "object") {
                     newValue = [...newValue, _value];
 
+                    // { '?': raw('LIKE "%tie%"') }
                     if (typeof _value === "object" && Object.getOwnPropertyNames("toSqlString")) {
                         isObjectOfRaw = true;
                     }

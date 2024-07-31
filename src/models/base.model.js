@@ -70,14 +70,36 @@ class BaseModel {
         return await this.db.execute(sql);
     }
 
-    deleteOne(conditions) {
+    async updateMany(conditions, data) {
+        if (!data || !conditions) throw new BadRequestError("Data not found!");
+
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
+
+        const sql = format(`UPDATE ?? SET ? ${query}`, [this.tableName, data, ...value]);
+
+        console.log(`sql update many`, sql);
+
+        return await this.db.execute(sql);
+    }
+
+    async deleteOne(conditions) {
         if (!conditions) throw new BadRequestError("Data not found!");
 
         const { query, value } = QueryHelper.buildWhereClause(conditions);
 
         const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
 
-        return this.db.execute(sql);
+        return await this.db.execute(sql);
+    }
+
+    async deleteMany(conditions) {
+        if (!conditions) throw new BadRequestError("Data not found!");
+
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
+
+        const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
+
+        return await this.db.execute(sql);
     }
 
     async find(conditions = null, order = {}) {
@@ -96,6 +118,8 @@ class BaseModel {
         }
 
         const sql = format(query, params);
+
+        console.log({ sql });
 
         const result = await this.db.query(sql);
 
@@ -140,10 +164,20 @@ class BaseModel {
         };
     }
 
-    async findOne(conditions) {
+    async findOne(conditions, order = null) {
         const { query, value } = QueryHelper.buildWhereClause(conditions);
 
-        const sql = format(`SELECT * FROM ?? ${query}`, [this.tableName, ...value]);
+        let sql = `SELECT * FROM ?? ${query}`;
+        const params = [this.tableName, ...value];
+
+        if (order) {
+            sql += ` ORDER BY ?? ${order.value}`;
+            params.push(order.key);
+        }
+
+        sql += ` LIMIT 1`;
+
+        sql = format(sql, params);
 
         const [result] = await this.db.query(sql);
 
