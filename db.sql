@@ -338,7 +338,6 @@ CREATE TABLE IF NOT EXISTS `document_sections` (
   PRIMARY KEY (`section_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-
 DROP TABLE IF EXISTS `document_sections`;
 
 CREATE TABLE IF NOT EXISTS `notes` (
@@ -382,6 +381,12 @@ ALTER TABLE `comments` ADD IF NOT EXISTS `comment_count_sub` INT DEFAULT 0 AFTER
 ALTER TABLE `comments` DROP COLUMN IF EXISTS `comment_count_sub`;
 
 
+-- DROP TABLE IF EXISTS `users_roles`;
+-- DROP TABLE IF EXISTS `roles_grants`;
+-- DROP TABLE IF EXISTS `roles`;
+-- DROP TABLE IF EXISTS `resources`;
+-- DROP TABLE IF EXISTS `grants`;
+
 CREATE TABLE IF NOT EXISTS `resources` (
   `resource_id` INT NOT NULL AUTO_INCREMENT,
   `resource_name` VARCHAR(255) NOT NULL,
@@ -391,7 +396,7 @@ CREATE TABLE IF NOT EXISTS `resources` (
   PRIMARY KEY (`resource_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-
+-- Role base of system
 CREATE TABLE IF NOT EXISTS `roles` (
   `role_id` INT NOT NULL AUTO_INCREMENT,
   `role_name` ENUM('admin', 'user', 'teacher') NOT NULL,
@@ -403,25 +408,30 @@ CREATE TABLE IF NOT EXISTS `roles` (
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 
-CREATE TABLE IF NOT EXISTS `role_grants` (
+CREATE TABLE IF NOT EXISTS `grants` (
   `grant_id` INT NOT NULL AUTO_INCREMENT,
-  `grant_actions` JSON NOT NULL,  -- ['create:any', 'read:any', 'update:any', 'delete:any', 'create:own', 'read:own', 'update:own', 'delete:own']
+  `grant_action` ENUM('create:any', 'read:any', 'update:any', 'delete:any', 'create:own', 'read:own', 'update:own', 'delete:own') NOT NULL,  -- ['create:any', 'read:any', 'update:any', 'delete:any', 'create:own', 'read:own', 'update:own', 'delete:own']
   `grant_attribute` VARCHAR(255) DEFAULT '*', -- '*' or '* !column, !column2, ...'
-  `role_id` INT NOT NULL,
   `resource_id` INT NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
   FOREIGN KEY (`resource_id`) REFERENCES `resources` (`resource_id`),
   PRIMARY KEY (`grant_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
 
+CREATE TABLE IF NOT EXISTS `roles_grants` (
+  `role_id` INT NOT NULL,
+  `grant_id` INT NOT NULL,
+  FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
+  FOREIGN KEY (`grant_id`) REFERENCES `grants` (`grant_id`),
+  PRIMARY KEY (`role_id`, `grant_id`)
+) ENGINE = InnoDB;
+
+
 CREATE TABLE IF NOT EXISTS `users_roles` (
   `user_id` INT NOT NULL,
   `role_id` INT NOT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
   FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
   PRIMARY KEY (`user_id`, `role_id`)
