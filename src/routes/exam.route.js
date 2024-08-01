@@ -7,13 +7,18 @@ const examController = require("../controllers/exam.controller");
 const { examSchemaCreate } = require("../schemas/exam.schema");
 const { validateData } = require("../middleware/validate.middleware");
 const { authentication } = require("../middleware/auth.middleware");
-const { READ_ANY } = require("../constants");
+const { READ_ANY, READ_OWN, CREATE_ANY } = require("../constants/rbac.constant");
 const grantAccess = require("../middleware/rbac.middleware");
 
 route.use(authentication);
 
 route.get(`/`, grantAccess(READ_ANY, "exam"), asyncHandler(examController.find));
-route.get(`/:examId`, asyncHandler(examController.getById));
-route.post(`/`, validateData(examSchemaCreate), asyncHandler(examController.create));
+route.get(`/:examId`, grantAccess(READ_OWN, "exam"), asyncHandler(examController.getById));
+route.post(
+    `/`,
+    grantAccess(CREATE_ANY, "exam"),
+    validateData(examSchemaCreate),
+    asyncHandler(examController.create)
+);
 
 module.exports = route;

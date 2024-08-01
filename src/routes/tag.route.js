@@ -12,17 +12,21 @@ const {
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
 const { uploadDisk } = require("../configs/multer.config");
-const { authentication, checkRoles } = require("../middleware/auth.middleware");
-const { USER_ROLES } = require("../constants");
+const { authentication } = require("../middleware/auth.middleware");
+const grantAccess = require("../middleware/rbac.middleware");
+const { UPDATE_ANY, CREATE_ANY, DELETE_ANY } = require("../constants/rbac.constant");
 
 route.get(`/`, asyncHandler(tagController.find));
 route.get("/:tagId", asyncHandler(tagController.findById));
 
 route.use(authentication);
-route.use(checkRoles([USER_ROLES.ADMIN]));
+
+// for teacher role
+
 route.post(
     `/multiple`,
     [
+        grantAccess(CREATE_ANY, "tag"),
         uploadDisk.single("file"),
         validateFileNotFound(`Không tìm thấy file excel upload!`),
         validateExtFile({
@@ -33,7 +37,18 @@ route.post(
     ],
     asyncHandler(tagController.createMultipleWithUploadFile)
 );
-route.post(`/`, validateData(createTagSchema), asyncHandler(tagController.create));
-route.patch(`/:tagId`, validateData(createTagSchema), asyncHandler(tagController.update));
+route.post(
+    `/`,
+    grantAccess(CREATE_ANY, "tag"),
+    validateData(createTagSchema),
+    asyncHandler(tagController.create)
+);
+route.patch(
+    `/:tagId`,
+    grantAccess(UPDATE_ANY, "tag"),
+    validateData(createTagSchema),
+    asyncHandler(tagController.update)
+);
+route.delete(`/:tagId`, grantAccess(DELETE_ANY, "tag"), asyncHandler(tagController.deleteById));
 
 module.exports = route;

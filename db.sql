@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 ALTER TABLE `users` CHANGE `user_avatar` `user_avatar` JSON DEFAULT NULL;
 
+ALTER TABLE `users` CHANGE `user_role` `user_role` enum('admin', 'user', 'teacher') DEFAULT NULL;
+
 CREATE TABLE IF NOT EXISTS `key_tokens` (
     `key_id` VARCHAR(16) NOT NULL,
     `user_id` INT NOT NULL,
@@ -380,12 +382,13 @@ ALTER TABLE `comments` ADD IF NOT EXISTS `comment_status` ENUM('active', 'inacti
 ALTER TABLE `comments` ADD IF NOT EXISTS `comment_count_sub` INT DEFAULT 0 AFTER `comment_parentId`;
 ALTER TABLE `comments` DROP COLUMN IF EXISTS `comment_count_sub`;
 
-
 -- DROP TABLE IF EXISTS `users_roles`;
 -- DROP TABLE IF EXISTS `roles_grants`;
 -- DROP TABLE IF EXISTS `roles`;
 -- DROP TABLE IF EXISTS `resources`;
 -- DROP TABLE IF EXISTS `grants`;
+
+-- Role based access control (RBAC)
 
 CREATE TABLE IF NOT EXISTS `resources` (
   `resource_id` INT NOT NULL AUTO_INCREMENT,
@@ -427,13 +430,3 @@ CREATE TABLE IF NOT EXISTS `roles_grants` (
   FOREIGN KEY (`grant_id`) REFERENCES `grants` (`grant_id`),
   PRIMARY KEY (`role_id`, `grant_id`)
 ) ENGINE = InnoDB;
-
-
-CREATE TABLE IF NOT EXISTS `users_roles` (
-  `user_id` INT NOT NULL,
-  `role_id` INT NOT NULL,
-  FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`),
-  FOREIGN KEY (`role_id`) REFERENCES `roles` (`role_id`),
-  PRIMARY KEY (`user_id`, `role_id`)
-) ENGINE = InnoDB DEFAULT CHARSET=utf8;
-

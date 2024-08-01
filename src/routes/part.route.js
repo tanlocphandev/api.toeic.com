@@ -11,18 +11,21 @@ const {
     validateFileNotFound,
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
-const { authentication, checkRoles } = require("../middleware/auth.middleware");
+const { authentication } = require("../middleware/auth.middleware");
 const { uploadDisk } = require("../configs/multer.config");
-const { USER_ROLES } = require("../constants");
+const grantAccess = require("../middleware/rbac.middleware");
+const { CREATE_ANY, UPDATE_ANY } = require("../constants/rbac.constant");
 
 route.get(`/`, asyncHandler(partController.find));
 route.get("/:partId", asyncHandler(partController.findById));
 
 route.use(authentication);
-route.use(checkRoles([USER_ROLES.ADMIN]));
+// For teacher role
+
 route.post(
     `/multiple`,
     [
+        grantAccess(CREATE_ANY, "part"),
         uploadDisk.single("file"),
         validateFileNotFound(`Không tìm thấy file excel upload!`),
         validateExtFile({
@@ -33,7 +36,19 @@ route.post(
     ],
     asyncHandler(partController.createMultipleWithUploadFile)
 );
-route.post(`/`, validateData(createPartSchema), asyncHandler(partController.create));
-route.patch(`/:partId`, validateData(createPartSchema), asyncHandler(partController.update));
+
+route.post(
+    `/`,
+    grantAccess(CREATE_ANY, "part"),
+    validateData(createPartSchema),
+    asyncHandler(partController.create)
+);
+
+route.patch(
+    `/:partId`,
+    grantAccess(UPDATE_ANY, "part"),
+    validateData(createPartSchema),
+    asyncHandler(partController.update)
+);
 
 module.exports = route;

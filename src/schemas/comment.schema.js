@@ -16,6 +16,9 @@ const updateCommentSchema = z.object({
         .string({ required_error: "Nội dung bình luận là trường bắt buộc!" })
         .max(255, "Nhiều nhất 255 kí tự!")
         .optional(),
+});
+
+const updateStatusCommentSchema = z.object({
     comment_status: z.enum(["active", "inactive"]).optional(),
 });
 
@@ -30,4 +33,9 @@ const deleteCommentSchema = z.object({
         .min(1, "Mã đề thi phải lớn bằng 1!"),
 });
 
-module.exports = { createCommentSchema, updateCommentSchema, deleteCommentSchema };
+module.exports = {
+    createCommentSchema,
+    updateCommentSchema,
+    deleteCommentSchema,
+    updateStatusCommentSchema,
+};

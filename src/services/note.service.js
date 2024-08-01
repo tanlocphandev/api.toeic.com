@@ -1,6 +1,10 @@
 "use strict";
 
-const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
+const {
+    ConflictRequestError,
+    NotfoundRequestError,
+    AuthFailureError,
+} = require("../core/error.response");
 const { noteModel } = require("../models/note.model");
 
 class NoteService {

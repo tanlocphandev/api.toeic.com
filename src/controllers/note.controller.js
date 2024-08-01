@@ -1,6 +1,8 @@
 "use strict";
 
 const { OK, Created } = require("../core/success.response");
+const { checkOwn } = require("../helpers/auth.helper");
+const { noteModel } = require("../models/note.model");
 const NoteService = require("../services/note.service");
 
 class NoteController {
@@ -17,6 +19,14 @@ class NoteController {
 
     async update(req, res) {
         const { noteId } = req.params;
+
+        await checkOwn({
+            key: "note_id",
+            value: noteId,
+            userId: req.user.userId,
+            model: noteModel,
+        });
+
         const note = await NoteService.update(noteId, req.body);
 
         return new OK({
@@ -28,6 +38,14 @@ class NoteController {
     async findById(req, res) {
         const { noteId } = req.params;
         const { userId } = req.user;
+
+        await checkOwn({
+            key: "note_id",
+            value: noteId,
+            userId: userId,
+            model: noteModel,
+        });
+
         const note = await NoteService.findById(noteId, userId);
 
         return new OK({
@@ -55,6 +73,13 @@ class NoteController {
 
     async delete(req, res) {
         const { userId } = req.user;
+
+        await checkOwn({
+            key: "note_id",
+            value: req.params.noteId,
+            userId: userId,
+            model: noteModel,
+        });
 
         return new OK({
             message: "Delete note successfully",

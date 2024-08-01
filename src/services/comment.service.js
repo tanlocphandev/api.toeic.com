@@ -1,6 +1,6 @@
 "use strict";
 
-const { NotfoundRequestError } = require("../core/error.response");
+const { NotfoundRequestError, AuthFailureError } = require("../core/error.response");
 const MysqlHelper = require("../helpers/mysql.helper");
 const { commentModel } = require("../models/comment.model");
 const { testModel } = require("../models/test.model");
@@ -58,6 +58,19 @@ class CommentService {
         const newComment = await commentModel.insert(comment);
 
         return newComment.insertId;
+    }
+
+    static async checkOwn({ commentId, userId }) {
+        const foundComment = await commentModel.findOne({
+            comment_id: commentId,
+            user_id: userId,
+        });
+
+        if (!foundComment) {
+            throw new AuthFailureError(`Bạn không có quyền truy cập!`);
+        }
+
+        return foundComment;
     }
 
     static async updateComment(commentId, body) {
@@ -142,10 +155,15 @@ class CommentService {
             rightValue = foundComment.comment_right,
             width = rightValue - leftValue + 1; // 2. Tính chieu rong cua comment đang xóa
 
+        // console.log("====================================");
+        // console.log({ leftValue, rightValue, width, foundComment });
+        // console.log("====================================");
+
         // 3. Xóa all comments con
         await commentModel.deleteMany({
-            comment_left: MysqlHelper.gte(leftValue),
-            comment_left: MysqlHelper.lte(rightValue),
+            comment_left: MysqlHelper.query(
+                `>= ${leftValue} AND \`comment_left\` <= ${rightValue}`
+            ),
             test_id: testId,
         });
 

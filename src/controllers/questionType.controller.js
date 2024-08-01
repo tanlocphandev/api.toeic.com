@@ -63,6 +63,15 @@ class QuestionTypeController {
             options: pagination,
         }).send(res);
     }
+
+    async deleteById(req, res) {
+        const { typeId } = req.params;
+        await QuestionTypeService.delete(typeId);
+
+        return new OK({
+            message: "Delete question type successfully",
+        }).send(res);
+    }
 }
 
 module.exports = new QuestionTypeController();

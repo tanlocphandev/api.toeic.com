@@ -50,4 +50,17 @@ const verifyToken = async (token, secureKey) => {
     }
 };
 
-module.exports = { createTokenPair, verifyToken };
+const checkOwn = async ({ userId, model, key, value }) => {
+    const foundOwn = await model.findOne({
+        user_id: userId,
+        [key]: value,
+    });
+
+    if (!foundOwn) {
+        throw new AuthFailureError("Bạn không có quyền truy cập!");
+    }
+
+    return foundOwn;
+};
+
+module.exports = { createTokenPair, verifyToken, checkOwn };

@@ -14,6 +14,8 @@ const {
 const { uploadDisk } = require("../configs/multer.config");
 const { authentication, checkRoles } = require("../middleware/auth.middleware");
 const { USER_ROLES } = require("../constants");
+const { CREATE_ANY, UPDATE_ANY } = require("../constants/rbac.constant");
+const grantAccess = require("../middleware/rbac.middleware");
 
 route.use(authentication);
 
@@ -21,12 +23,18 @@ route.get(`/`, asyncHandler(testController.find));
 route.get("/with/years", asyncHandler(testController.getTestWithYears));
 route.get("/:testId", asyncHandler(testController.findById));
 
-route.use(checkRoles([USER_ROLES.ADMIN]));
+// For teacher role
 
-route.patch(`/:testId`, validateData(createTestSchema), asyncHandler(testController.update));
+route.patch(
+    `/:testId`,
+    grantAccess(UPDATE_ANY, "test"),
+    validateData(createTestSchema),
+    asyncHandler(testController.update)
+);
 route.post(
     `/multiple`,
     [
+        grantAccess(CREATE_ANY, "test"),
         uploadDisk.single("file"),
         validateFileNotFound(`Không tìm thấy file excel upload!`),
         validateExtFile({
@@ -37,7 +45,16 @@ route.post(
     ],
     asyncHandler(testController.createMultipleWithUploadFile)
 );
-route.post(`/with-questions`, asyncHandler(testController.createWithUploadQuestion));
-route.post(`/`, validateData(createTestSchema), asyncHandler(testController.create));
+route.post(
+    `/with-questions`,
+    grantAccess(CREATE_ANY, "test"),
+    asyncHandler(testController.createWithUploadQuestion)
+);
+route.post(
+    `/`,
+    grantAccess(CREATE_ANY, "test"),
+    validateData(createTestSchema),
+    asyncHandler(testController.create)
+);
 
 module.exports = route;

@@ -2,6 +2,7 @@
 
 const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
 const { questionTypeModel } = require("../models/questionType.model");
+const { questionModel } = require("../models/question.model");
 
 class QuestionTypeService {
     static async findBySlug(slug) {
@@ -88,6 +89,27 @@ class QuestionTypeService {
             results: results,
             pagination: pagination,
         };
+    }
+
+    static async delete(typeId) {
+        // Check if the type already exists
+        const foundType = await questionTypeModel.findById(typeId);
+
+        if (!foundType) {
+            throw new NotfoundRequestError(`Không tìm thấy loại câu hỏi có id ${typeId}`);
+        }
+
+        const foundTypeInQuestion = await questionModel.findOne({
+            question_type_id: typeId,
+        });
+
+        if (foundTypeInQuestion) {
+            throw new NotfoundRequestError("Loại câu hỏi đang được sử dụng vào câu hỏi");
+        }
+
+        const deleted = await questionTypeModel.deleteOne({ type_id: typeId });
+
+        return deleted.affectedRows;
     }
 }
 

@@ -53,6 +53,16 @@ class TagController {
             options: pagination,
         }).send(res);
     }
+
+    async deleteById(req, res) {
+        const { tagId } = req.params;
+        const tag = await TagService.deleteById(tagId);
+
+        return new OK({
+            message: "Delete tag successfully",
+            metadata: tag,
+        }).send(res);
+    }
 }
 
 module.exports = new TagController();

@@ -2,6 +2,7 @@
 
 const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
 const { tagModel } = require("../models/tag.model");
+const { questionTagModel } = require("../models/questionTag.model");
 const { generateSlug, generateRandomString } = require("../utils");
 
 class TagService {
@@ -90,6 +91,30 @@ class TagService {
             results: results,
             pagination: pagination,
         };
+    }
+
+    static async deleteById(tagId) {
+        // found tag if exist foreign key
+
+        const foundTag = await tagModel.findById(tagId);
+
+        if (!foundTag) {
+            throw new NotfoundRequestError(`Không tìm thấy tag có id ${tagId}`);
+        }
+
+        const foundTagInQuestion = await questionTagModel.findOne({
+            tag_id: tagId,
+        });
+
+        if (foundTagInQuestion) {
+            throw new ConflictRequestError(
+                "Tag đã được liên kết với câu hỏi. Vui lòng xóa câu hỏi trước khi xóa tag"
+            );
+        }
+
+        const deleted = await tagModel.deleteOne({ tag_id: tagId });
+
+        return deleted.affectedRows;
     }
 }
 

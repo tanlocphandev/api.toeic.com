@@ -2,10 +2,10 @@
 
 const { ConflictRequestError } = require("../core/error.response");
 const { resourceModel, ResourceDao } = require("../models/resource.model");
-const { roleModel, RoleDao } = require("../models/role.model");
-const { roleGrantModel } = require("../models/roleGrant.model");
-const { userRoleModel } = require("../models/userRole.model");
-const { generateRandomString, mapValue, mapperSelect, mapperUnSelect } = require("../utils");
+const { roleModel } = require("../models/role.model");
+const { roleGrantModel, RoleGrantDao } = require("../models/roleGrant.model");
+const { grantModel } = require("../models/grant.model");
+const { mapperSelect, mapperUnSelect } = require("../utils");
 
 class RbacService {
     static async createResource({ name, desc }) {
@@ -22,6 +22,89 @@ class RbacService {
         return added.insertId;
     }
 
+    static async createGrant({ resourceId, action, attribute }) {
+        const foundGrant = await grantModel.findOne({
+            resource_id: resourceId,
+            grant_action: action,
+            grant_attribute: attribute,
+        });
+
+        if (foundGrant) throw new ConflictRequestError("Grant đã tồn tại");
+
+        const payload = {
+            resource_id: resourceId,
+            grant_action: action,
+            grant_attribute: attribute,
+        };
+
+        const added = await grantModel.insert(payload);
+
+        return added.insertId;
+    }
+
+    static async updateGrant(grantId, { action }) {
+        if (!action) return 0;
+
+        const payload = {
+            grant_action: action,
+        };
+
+        const updated = await grantModel.updateOne({ grant_id: grantId }, payload);
+
+        return updated.affectedRows;
+    }
+
+    static async createGrantMultiple({ grants = [] }) {
+        // check if grant already exists
+
+        const foundGrants = await Promise.all(
+            grants.map(
+                async (g) =>
+                    await grantModel.findOne({
+                        resource_id: g.resourceId,
+                        grant_action: g.action,
+                        grant_attribute: g.attribute,
+                    })
+            )
+        );
+
+        if (foundGrants.filter((g) => g).length) {
+            throw new ConflictRequestError("Grant đã tồn tại", undefined, foundGrants);
+        }
+
+        const payload = grants.map((g) => {
+            const payload = {
+                resource_id: g.resourceId,
+                grant_action: g.action,
+                grant_attribute: g.attribute,
+            };
+
+            return Object.values(payload);
+        });
+
+        const added = await grantModel.insertBulk({
+            data: payload,
+            fields: ["resource_id", "grant_action", "grant_attribute"],
+        });
+
+        return added;
+    }
+
+    static async getAllGrants() {
+        const grants = await grantModel.find();
+
+        if (!grants.length) return [];
+
+        const result = await Promise.all(
+            grants.map(async (t) => {
+                const resource = await resourceModel.findById(t.resource_id);
+                return { ...t, resource: resource?.resource_name };
+            })
+        );
+
+        return result.map((t) => mapperUnSelect(t, ["created_at", "updated_at"]));
+    }
+
     static async getAllResources() {
         const resources = await resourceModel.find();
 
@@ -32,16 +115,9 @@ class RbacService {
         );
     }
 
-    static async createRole({ name, slug, desc, grants = [] }) {
+    static async createRole({ name, slug, desc, grantIds = [] }) {
         /* 
-            grants = [
-                { 
-                    resourceId: 'resource123', 
-                    action: ['create:any', 'delete:any', ...], 
-                    attributes: '*' | '* !column, !column2, ...' 
-                },
-                ...
-            ]
+            grantIds = [1, 2, 3, 4...]
         */
 
         const foundRole = await roleModel.findOne({
@@ -61,12 +137,10 @@ class RbacService {
 
         const newRoleId = newRole.insertId;
 
-        const payloadRoleGrants = grants.map((grant) => {
+        const payloadRoleGrants = grantIds.map((grantId) => {
             const payload = {
                 role_id: newRoleId,
-                resource_id: grant.resourceId,
-                grant_actions: mapValue({ rawValue: grant.action, isJson: true }),
-                grant_attribute: grant.attributes,
+                grant_id: grantId,
             };
 
             return Object.values(payload);
@@ -74,54 +148,82 @@ class RbacService {
 
         await roleGrantModel.insertBulk({
             data: payloadRoleGrants,
-            fields: ["role_id", "resource_id", "grant_actions", "grant_attribute"],
+            fields: ["role_id", "grant_id"],
         });
 
         return newRoleId;
     }
 
-    static async getListRole() {
-        const roles = await roleModel.find();
+    static async getListRole(payload = { role: "", includeId: false }) {
+        const { role = "", includeId = false } = payload;
 
-        let result = roles.map((role) => new RoleDao(role));
+        const rolesGrants = await roleGrantModel.find();
+
+        let result = rolesGrants.map((role) => new RoleGrantDao(role));
 
         result = await Promise.all(
             result.map(async (row) => {
-                const role_grants = await roleGrantModel.findGrantByRoleId(row.role_id);
+                const role = await roleModel.findById(row.role_id);
+                const grant = await grantModel.findById(row.grant_id, true);
+
+                if (includeId) {
+                    return {
+                        role_id: row.role_id,
+                        grant_id: row.grant_id,
+                        role: role.role_name,
+                        resource: grant.resource,
+                        action: grant.grant_action,
+                        attribute: grant.grant_attribute,
+                    };
+                }
 
                 return {
-                    ...mapperUnSelect(row, ["created_at", "updated_at"]),
-                    role_grants,
+                    role: role.role_name,
+                    resource: grant.resource,
+                    action: grant.grant_action,
+                    attribute: grant.grant_attribute,
                 };
             })
         );
 
-        const rolesMap = [];
-        const resultLength = result.length;
+        if (role) result = result.filter((r) => r.role === role);
 
-        for (let i = 0; i < resultLength; i++) {
-            const role = result[i];
-
-            role.role_grants.forEach((grant) => {
-                grant.grant_actions.forEach((action) => {
-                    rolesMap.push({
-                        role: role.role_name,
-                        resource: grant.resource,
-                        action: action,
-                        attributes: grant.grant_attribute,
-                    });
-                });
-            });
-        }
-
-        return rolesMap;
+        return result;
     }
 
-    static async addGrantToRole() {}
+    static async addGrantToRole({ role_id = 0, grant_id = 0 }) {
+        const found = await roleGrantModel.findOne({
+            role_id,
+            grant_id,
+        });
 
-    static async removeGrantToRole() {}
+        if (found) throw new ConflictRequestError("Grant đã tồn tại");
 
-    static async updateGrant() {}
+        const payload = {
+            role_id,
+            grant_id,
+        };
+
+        await roleGrantModel.insert(payload);
+
+        return true;
+    }
+
+    static async removeGrantToRole({ role_id = 0, grant_id = 0 }) {
+        const found = await roleGrantModel.findOne({
+            role_id,
+            grant_id,
+        });
+
+        if (!found) throw new ConflictRequestError("Grant đã tồn tại");
+
+        await roleGrantModel.deleteOne({
+            role_id,
+            grant_id,
+        });
+
+        return true;
+    }
 }
 
 module.exports = RbacService;

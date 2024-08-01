@@ -13,6 +13,22 @@ class UserController {
             options: pagination,
         }).send(res);
     }
+
+    async addTeacher(req, res) {
+        return new OK({
+            message: "Add teacher successfully",
+            metadata: await UserService.addTeacher(req.body),
+        }).send(res);
+    }
+
+    async updateProfile(req, res) {
+        const { userId } = req.user;
+
+        return new OK({
+            message: "Update profile successfully",
+            metadata: await UserService.updateProfile(userId, req.body),
+        }).send(res);
+    }
 }
 
 module.exports = new UserController();

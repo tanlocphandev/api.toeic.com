@@ -3,6 +3,8 @@
 const CommentService = require("../services/comment.service");
 const { Created, OK } = require("../core/success.response");
 const { BadRequestError } = require("../core/error.response");
+const { checkOwn } = require("../helpers/auth.helper");
+const { commentModel } = require("../models/comment.model");
 
 class CommentController {
     createComment = async (req, res) => {
@@ -15,9 +17,41 @@ class CommentController {
     };
 
     updateComment = async (req, res) => {
+        const { comment_content = "" } = req.body;
+
+        await checkOwn({
+            key: "comment_id",
+            value: req.params.commentId,
+            userId: req.user.userId,
+            model: commentModel,
+        });
+
+        if (!comment_content) {
+            return new OK({
+                message: "Update comment success",
+                metadata: 0,
+            }).send(res);
+        }
+
         new OK({
             message: "Update comment success",
-            metadata: await CommentService.updateComment(req.params.commentId, req.body),
+            metadata: await CommentService.updateComment(req.params.commentId, { comment_content }),
+        }).send(res);
+    };
+
+    updateStatusComment = async (req, res) => {
+        const { comment_status = "" } = req.body;
+
+        if (!comment_status) {
+            return new OK({
+                message: "Update status comment success",
+                metadata: 0,
+            }).send(res);
+        }
+
+        new OK({
+            message: "Update status comment success",
+            metadata: await CommentService.updateComment(req.params.commentId, { comment_status }),
         }).send(res);
     };
 
@@ -33,6 +67,13 @@ class CommentController {
     };
 
     deleteComment = async (req, res) => {
+        await checkOwn({
+            key: "comment_id",
+            value: req.body.commentId,
+            userId: req.user.userId,
+            model: commentModel,
+        });
+
         new OK({
             message: "Delete comment success",
             metadata: await CommentService.deleteComment(req.body),

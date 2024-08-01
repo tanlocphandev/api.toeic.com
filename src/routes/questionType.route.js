@@ -12,19 +12,21 @@ const {
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
 const { uploadDisk } = require("../configs/multer.config");
-const { authentication, checkRoles } = require("../middleware/auth.middleware");
-const { USER_ROLES } = require("../constants");
+const { authentication } = require("../middleware/auth.middleware");
+const grantAccess = require("../middleware/rbac.middleware");
+const { CREATE_ANY, UPDATE_ANY, DELETE_ANY } = require("../constants/rbac.constant");
 
 route.get(`/`, asyncHandler(questionTypeController.find));
 route.get("/:typeId", asyncHandler(questionTypeController.findById));
 route.get("/slug/:slug", asyncHandler(questionTypeController.findBySlug));
 
 route.use(authentication);
-route.use(checkRoles([USER_ROLES.ADMIN]));
+// for teacher role
 
 route.post(
     `/multiple`,
     [
+        grantAccess(CREATE_ANY, "questionType"),
         uploadDisk.single("file"),
         validateFileNotFound(`Không tìm thấy file excel upload!`),
         validateExtFile({
@@ -37,14 +39,22 @@ route.post(
 );
 route.post(
     `/`,
+    grantAccess(CREATE_ANY, "questionType"),
     validateData(createQuestionTypeSchema),
     asyncHandler(questionTypeController.create)
 );
 
 route.patch(
     `/:typeId`,
+    grantAccess(UPDATE_ANY, "questionType"),
     validateData(createQuestionTypeSchema),
     asyncHandler(questionTypeController.update)
+);
+
+route.delete(
+    `/:typeId`,
+    grantAccess(DELETE_ANY, "questionType"),
+    asyncHandler(questionTypeController.deleteById)
 );
 
 module.exports = route;

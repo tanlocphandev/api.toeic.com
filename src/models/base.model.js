@@ -99,6 +99,8 @@ class BaseModel {
 
         const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
 
+        console.log(`sql delete many`, sql);
+
         return await this.db.execute(sql);
     }
 

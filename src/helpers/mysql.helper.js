@@ -18,6 +18,12 @@ class MysqlHelper {
         return raw(`\`${column}\` - ${value}`);
     }
 
+    static in(value = []) {
+        return {
+            "?": raw(`IN (${value.join(",")})`),
+        };
+    }
+
     /**
      * Generates a raw MySQL query to compare a column value to a given value
      * using a greater than or equal to operator.
@@ -28,6 +34,12 @@ class MysqlHelper {
     static gte(value) {
         return {
             "?": raw(`>= ${value}`),
+        };
+    }
+
+    static query(query) {
+        return {
+            "?": raw(query),
         };
     }
 
