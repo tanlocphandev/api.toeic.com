@@ -4,6 +4,7 @@ const QueryHelper = require("../helpers/query.helper");
 const { generateSlug, filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
+const { commentModel } = require("./comment.model");
 
 class TestDao extends SoftDeleteModel {
     constructor({
@@ -130,7 +131,18 @@ class TestModel extends BaseModel {
 
         if (!response.length) return [];
 
-        const tests = response.map((row) => new TestDao(row));
+        let tests = response.map((row) => new TestDao(row));
+
+        tests = await Promise.all(
+            tests.map(async (t) => {
+                const test_comment_count = await commentModel.count({
+                    test_id: t.test_id,
+                    comment_status: "active",
+                });
+                return { ...t, test_comment_count: test_comment_count };
+            })
+        );
+
         const years = [];
         const testsLength = tests.length;
 
