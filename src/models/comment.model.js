@@ -102,6 +102,17 @@ class CommentModel extends BaseModel {
 
         return response;
     }
+
+    async _countChildren(data = []) {
+        const response = await Promise.all(
+            data.map(async (row) => {
+                const count = await super.count({ comment_parentId: row.comment_id });
+                return { ...row, comment_count_children: count };
+            })
+        );
+
+        return response;
+    }
 }
 
 module.exports = { CommentDao, commentModel: new CommentModel() };

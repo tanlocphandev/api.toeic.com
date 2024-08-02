@@ -95,17 +95,20 @@ class CommentService {
                 throw new NotfoundRequestError("Không tìm thấy bình luận cha");
             }
 
-            const comments = await commentModel.find(
+            let comments = await commentModel.find(
                 {
                     test_id: testId,
                     comment_left: MysqlHelper.gt(parent.comment_left),
                     comment_right: MysqlHelper.lte(parent.comment_right),
+                    comment_parentId: parentCommentId,
                 },
                 {
                     key: "comment_left",
                     value: "ASC",
                 }
             );
+
+            comments = await commentModel._countChildren(comments);
 
             if (!include) {
                 return comments;
@@ -116,7 +119,7 @@ class CommentService {
             return results;
         }
 
-        const comments = await commentModel.find(
+        let comments = await commentModel.find(
             {
                 test_id: testId,
                 comment_parentId: MysqlHelper.isNull(),
@@ -126,6 +129,8 @@ class CommentService {
                 value: "ASC",
             }
         );
+
+        comments = await commentModel._countChildren(comments);
 
         if (!include) {
             return comments;

@@ -186,7 +186,15 @@ class BaseModel {
         return result;
     }
 
-    count() {}
+    async count(conditions) {
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
+
+        const sql = format(`SELECT COUNT(*) as count FROM ?? ${query}`, [this.tableName, ...value]);
+
+        const [result] = await this.db.query(sql);
+
+        return result.count;
+    }
 }
 
 module.exports = BaseModel;
