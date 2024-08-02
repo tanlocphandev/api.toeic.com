@@ -82,6 +82,26 @@ class CommentService {
             throw new NotfoundRequestError("Không tìm thấy bình luận");
         }
 
+        if (body.comment_status) {
+            const leftValue = foundComment.comment_left,
+                rightValue = foundComment.comment_right;
+
+            // updateMany comments
+            await commentModel.updateMany(
+                {
+                    comment_left: MysqlHelper.query(
+                        `>= ${leftValue} AND \`comment_left\` <= ${rightValue}`
+                    ),
+                    test_id: foundComment.test_id,
+                },
+                {
+                    comment_status: body.comment_status,
+                }
+            );
+
+            return 1;
+        }
+
         const updatedComment = await commentModel.updateById(commentId, body);
 
         return updatedComment.affectedRows;
