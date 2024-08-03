@@ -291,6 +291,8 @@ CREATE TABLE IF NOT EXISTS `exams` (
 
 
 ALTER TABLE `exams` CHANGE IF EXISTS `exam_total_answer` `exam_total_question` INT NOT NULL;
+ALTER TABLE `exams` ADD IF NOT EXISTS `exam_count_listening_correct` INT DEFAULT 0 AFTER `exam_count_question_correct`;
+ALTER TABLE `exams` ADD IF NOT EXISTS `exam_count_reading_correct` INT DEFAULT 0 AFTER `exam_count_question_correct`;
 
 CREATE TABLE IF NOT EXISTS `exam_details` (
   `detail_id` INT NOT NULL AUTO_INCREMENT,
@@ -430,3 +432,15 @@ CREATE TABLE IF NOT EXISTS `roles_grants` (
   FOREIGN KEY (`grant_id`) REFERENCES `grants` (`grant_id`),
   PRIMARY KEY (`role_id`, `grant_id`)
 ) ENGINE = InnoDB;
+
+DELIMITER $$
+--
+-- Procedures
+--
+CREATE DEFINER=`root`@`localhost` PROCEDURE IF NOT EXISTS `prod_get_role_grants` (IN `roleId_input` INT, IN `isSelectNotInRoleId_input` BOOLEAN)   IF(isSelectNotInRoleId_input = 1) then
+    SELECT gr.grant_id, roleId_input as role_id, gr.grant_action, rs.resource_name as resource FROM grants gr JOIN resources rs ON gr.resource_id = rs.resource_id WHERE gr.grant_id NOT IN(SELECT ro_gr.grant_id FROM roles_grants ro_gr WHERE ro_gr.role_id = roleId_input) ORDER BY rs.resource_name;
+ELSE 
+	SELECT gr.grant_id, roleId_input as role_id, gr.grant_action, rs.resource_name as resource FROM grants gr JOIN resources rs ON gr.resource_id = rs.resource_id WHERE gr.grant_id IN(SELECT ro_gr.grant_id FROM roles_grants ro_gr WHERE ro_gr.role_id = roleId_input) ORDER BY rs.resource_name;
+END IF$$
+
+DELIMITER ;

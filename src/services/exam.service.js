@@ -8,25 +8,49 @@ const { questionTypeModel } = require("../models/questionType.model");
 const Transaction = require("../db/transaction.db");
 const { mapValue, mapperUnSelect } = require("../utils");
 const { BadRequestError } = require("../core/error.response");
+const { scoreModel } = require("../models/score.model");
+const MysqlHelper = require("../helpers/mysql.helper");
 
 class ExamService {
     static async create({ answers = {}, testId, userId, questionTypeId = null, timer, examType }) {
         const connection = await Transaction.startTransaction();
 
         try {
+            // foundScore
+            const foundScore = await Transaction.findOne({
+                tableName: scoreModel.tableName,
+                conditions: {
+                    score_status: "active",
+                },
+                connection,
+            });
+
             // prepare data insert exam
             const payload = {
                 exam_total_question: 0,
                 exam_count_question_correct: 0,
                 exam_count_question_wrong: 0,
                 exam_count_question_skip: 0,
+                exam_count_reading_correct: 0,
+                exam_count_listening_correct: 0,
                 exam_type: examType,
                 exam_used_timer: timer,
-                score_id: null,
+                score_id: foundScore?.score_id || null,
                 user_id: userId,
                 test_id: testId,
                 question_type_id: mapValue({ rawValue: questionTypeId }),
             };
+
+            await Transaction.update({
+                tableName: testModel.tableName,
+                data: {
+                    test_user_count: MysqlHelper.inc("test_user_count", 1),
+                },
+                conditions: {
+                    test_id: testId,
+                },
+                connection,
+            });
 
             const answerToArray = Object.entries(answers).map(([questionId, answerId]) => ({
                 questionId,
@@ -40,7 +64,7 @@ class ExamService {
 
             // handle calculate total answer
             await Promise.all(
-                answerToArray.map(async ({ answerId }) => {
+                answerToArray.map(async ({ answerId }, index) => {
                     if (!answerId) {
                         payload.exam_count_question_skip += 1;
                         return true;
@@ -54,6 +78,12 @@ class ExamService {
 
                     if (foundAnswerCorrect?.answer_isCorrect) {
                         payload.exam_count_question_correct += 1;
+
+                        if (index <= 99) {
+                            payload.exam_count_listening_correct += 1;
+                        } else {
+                            payload.exam_count_reading_correct += 1;
+                        }
                     } else {
                         payload.exam_count_question_wrong += 1;
                     }

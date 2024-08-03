@@ -1,7 +1,7 @@
 "use strict";
 
 const QueryHelper = require("../helpers/query.helper");
-const { generateSlug, filterPropOutsideInstance } = require("../utils");
+const { generateSlug, filterPropOutsideInstance, parseValueToJson } = require("../utils");
 const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
 const { commentModel } = require("./comment.model");
@@ -103,7 +103,9 @@ class TestModel extends BaseModel {
 
         if (!response) return null;
 
-        return new TestDao(response);
+        const result = new TestDao(response);
+
+        return { ...result, test_audio: parseValueToJson({ value: result.test_audio }) };
     }
 
     async find(filters) {

@@ -1,6 +1,6 @@
 "use strict";
 
-const { mapperSelect } = require("../utils");
+const { mapperSelect, parseValueToJson } = require("../utils");
 const BaseModel = require("./base.model");
 const { userModel } = require("./user.model");
 const TimestampModel = require("./common/timestamp.model");
@@ -93,9 +93,14 @@ class CommentModel extends BaseModel {
             data.map(async (row) => {
                 const user = await userModel.findById(row.user_id);
 
+                const resultUser = mapperSelect(user, ["user_id", "user_fullName", "user_avatar"]);
+
                 return {
                     ...row,
-                    user: mapperSelect(user, ["user_id", "user_fullName", "user_avatar"]),
+                    user: {
+                        ...resultUser,
+                        user_avatar: parseValueToJson({ value: resultUser.user_avatar }),
+                    },
                 };
             })
         );

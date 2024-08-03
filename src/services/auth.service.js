@@ -3,7 +3,12 @@
 const { USER_ROLES } = require("../constants");
 const { ConflictRequestError, AuthFailureError } = require("../core/error.response");
 const { userModel } = require("../models/user.model");
-const { generateRandomString, mapperSelect, mapperUnSelect } = require("../utils");
+const {
+    generateRandomString,
+    mapperSelect,
+    mapperUnSelect,
+    parseValueToJson,
+} = require("../utils");
 const bcrypt = require("bcrypt");
 const Crypto = require("../libs/crypto.lib");
 const { createTokenPair } = require("../helpers/auth.helper");
@@ -166,7 +171,12 @@ class AuthService {
 
     static async getMe(userId) {
         const user = await userModel.findById(userId);
-        return mapperUnSelect(user, ["user_password", "user_salt", "user_verify"]);
+
+        if (!user) return null;
+
+        const result = mapperUnSelect(user, ["user_password", "user_salt", "user_verify"]);
+
+        return { ...result, user_avatar: parseValueToJson({ value: result.user_avatar }) };
     }
 
     static async logout(keyStore) {

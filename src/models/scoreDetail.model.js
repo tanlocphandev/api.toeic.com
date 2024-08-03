@@ -60,6 +60,14 @@ class ScoreDetailsModel extends BaseModel {
         return new ScoreDetailsDao(response);
     }
 
+    async findByScoreId(scoreId) {
+        const response = await super.find({ score_id: scoreId });
+
+        if (!response.length) return [];
+
+        return response.map((row) => new ScoreDetailsDao(row));
+    }
+
     async find(filters) {
         const { limit, page, offset, query, order, isGetAll } = QueryHelper.getPagination(filters);
 

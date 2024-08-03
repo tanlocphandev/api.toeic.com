@@ -6,12 +6,16 @@ const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
 const { questionTypeModel } = require("./questionType.model");
 const { testModel } = require("./test.model");
+const { scoreModel } = require("./score.model");
+const { scoreDetailsModel } = require("./scoreDetail.model");
 
 class ExamDao extends SoftDeleteModel {
     constructor({
         exam_id,
         exam_total_question,
         exam_count_question_correct,
+        exam_count_reading_correct,
+        exam_count_listening_correct,
         exam_count_question_wrong,
         exam_count_question_skip,
         exam_type,
@@ -29,6 +33,8 @@ class ExamDao extends SoftDeleteModel {
         this.exam_id = exam_id;
         this.exam_total_question = exam_total_question;
         this.exam_count_question_correct = exam_count_question_correct;
+        this.exam_count_reading_correct = exam_count_reading_correct;
+        this.exam_count_listening_correct = exam_count_listening_correct;
         this.exam_count_question_wrong = exam_count_question_wrong;
         this.exam_count_question_skip = exam_count_question_skip;
         this.exam_type = exam_type;
@@ -45,6 +51,8 @@ class ExamDao extends SoftDeleteModel {
                 exam_id: 1,
                 exam_total_question: 1,
                 exam_count_question_correct: 1,
+                exam_count_reading_correct: 1,
+                exam_count_listening_correct: 1,
                 exam_count_question_wrong: 1,
                 exam_count_question_skip: 1,
                 exam_type: 1,
@@ -72,12 +80,49 @@ class ExamModel extends BaseModel {
         return "exam_id";
     }
 
+    _calculateTotalScore(score) {
+        const { reading, listening } = score;
+        return reading.reading_score + listening.listening_score;
+    }
+
     async findById(examId) {
         const response = await super.findOne({ exam_id: examId });
 
         if (!response) return null;
 
-        return new ExamDao(response);
+        let resultScore = null;
+
+        if (response.score_id) {
+            const score = await scoreModel.findById(response.score_id);
+
+            if (score) {
+                const [foundScoreReading, foundScoreListening] = await Promise.all([
+                    scoreDetailsModel.findOne({
+                        score_id: score.score_id,
+                        number_correct_answer: response.exam_count_reading_correct,
+                    }),
+                    scoreDetailsModel.findOne({
+                        score_id: score.score_id,
+                        number_correct_answer: response.exam_count_listening_correct,
+                    }),
+                ]);
+
+                if (foundScoreReading && foundScoreListening) {
+                    resultScore = {
+                        reading: foundScoreReading,
+                        listening: foundScoreListening,
+                    };
+
+                    const totalScore = this._calculateTotalScore(resultScore);
+
+                    resultScore = { ...resultScore, totalScore };
+                }
+            }
+        }
+
+        const result = new ExamDao(response);
+
+        return { ...result, score: resultScore };
     }
 
     async find(filters) {
@@ -95,7 +140,35 @@ class ExamModel extends BaseModel {
                 results.map(async (row) => {
                     const test = await testModel.findById(row.test_id);
                     const questionType = await questionTypeModel.findById(row.question_type_id);
-                    return { ...row, test, questionType };
+                    const score = await scoreModel.findById(row.score_id);
+
+                    let resultScore = null;
+
+                    if (score) {
+                        const [foundScoreReading, foundScoreListening] = await Promise.all([
+                            scoreDetailsModel.findOne({
+                                score_id: score.score_id,
+                                number_correct_answer: row.exam_count_reading_correct,
+                            }),
+                            scoreDetailsModel.findOne({
+                                score_id: score.score_id,
+                                number_correct_answer: row.exam_count_listening_correct,
+                            }),
+                        ]);
+
+                        if (foundScoreReading && foundScoreListening) {
+                            resultScore = {
+                                reading: foundScoreReading,
+                                listening: foundScoreListening,
+                            };
+
+                            const totalScore = this._calculateTotalScore(resultScore);
+
+                            resultScore = { ...resultScore, totalScore };
+                        }
+                    }
+
+                    return { ...row, test, questionType, score: resultScore };
                 })
             );
 

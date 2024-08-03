@@ -5,6 +5,7 @@ const QueryHelper = require("../helpers/query.helper");
 const { filterPropOutsideInstance } = require("../utils");
 const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
+const { scoreDetailsModel } = require("./scoreDetail.model");
 
 class ScoreDao extends SoftDeleteModel {
     constructor({ score_id, score_name, score_status, created_at, updated_at, deleted_at }) {
@@ -50,12 +51,23 @@ class ScoreModel extends BaseModel {
         return new ScoreDao(response);
     }
 
-    async findById(scoreId) {
+    async findById(scoreId, include = false) {
         const response = await super.findOne({ score_id: scoreId });
 
         if (!response) return null;
 
-        return new ScoreDao(response);
+        let result = new ScoreDao(response);
+
+        if (!include) return result;
+
+        result = await this._findInclude(result);
+
+        return { ...result, scores };
+    }
+
+    async _findInclude(result) {
+        const scores = await scoreDetailsModel.findByScoreId(result.score_id);
+        return { ...result, scores };
     }
 
     async find(filters) {
