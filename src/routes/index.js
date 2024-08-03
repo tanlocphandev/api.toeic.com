@@ -20,6 +20,7 @@ route.use(`${APP_CONFIGS.PREFIX}/document`, require("./document.route"));
 route.use(`${APP_CONFIGS.PREFIX}/note`, require("./note.route"));
 route.use(`${APP_CONFIGS.PREFIX}/note-details`, require("./noteDetails.route"));
 route.use(`${APP_CONFIGS.PREFIX}/comment`, require("./comment.route"));
+route.use(`${APP_CONFIGS.PREFIX}/role`, require("./role.route"));
 route.use(`${APP_CONFIGS.PREFIX}/rbac`, require("./rbac.route"));
 
 module.exports = route;

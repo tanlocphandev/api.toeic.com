@@ -195,6 +195,16 @@ class BaseModel {
 
         return result.count;
     }
+
+    async callProcedure({ procedureName, params = [] }) {
+        const sql = format(`CALL ?? (?)`, [procedureName, params]);
+
+        console.log("====================================");
+        console.log(`callProcedure::`, sql);
+        console.log("====================================");
+        const [results] = await this.db.query(sql);
+        return results;
+    }
 }
 
 module.exports = BaseModel;
