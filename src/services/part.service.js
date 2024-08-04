@@ -3,9 +3,11 @@
 const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
 const { partModel } = require("../models/part.model");
 const { generateSlug, generateRandomString } = require("../utils");
+const { testPartModel } = require("../models/testPart.model");
+const { questionTypeModel } = require("../models/questionType.model");
 
 class PartService {
-    static async create({ partName, partNumber }) {
+    static async create({ partName, partNumber, description }) {
         // Check if the part already exists
         const foundPart = await partModel.findByName(partName);
 
@@ -15,11 +17,22 @@ class PartService {
             });
         }
 
+        const foundPartNumber = await partModel.findOne({
+            part_number: partNumber,
+        });
+
+        if (foundPartNumber) {
+            throw new ConflictRequestError("Số part đã tồn tại", undefined, {
+                partNumber: "Số part đã tồn tại",
+            });
+        }
+
         const payload = {
             part_name: partName,
             part_slug: generateSlug(partName),
             part_id: generateRandomString(16),
             part_number: partNumber,
+            part_desc: description,
         };
 
         const newPart = await partModel.insert(payload);
@@ -57,7 +70,7 @@ class PartService {
         return newParts;
     }
 
-    static async update(partId, { partName }) {
+    static async update(partId, { partName, description = "", partNumber = -1 }) {
         // Check if the part already exists
         const foundPart = await partModel.findByName(partName);
 
@@ -67,10 +80,29 @@ class PartService {
             });
         }
 
-        const payload = {
+        let payload = {
             part_name: partName,
             part_slug: generateSlug(partName),
         };
+
+        if (partNumber !== -1) {
+            const foundPartNumber = await partModel.findOne({
+                part_number: partNumber,
+            });
+
+            if (foundPartNumber && foundPartNumber.part_id !== partId) {
+                throw new ConflictRequestError("Số part đã tồn tại", undefined, {
+                    partNumber: "Số part đã tồn tại",
+                });
+            }
+
+            payload = {
+                ...payload,
+                part_number: partNumber,
+            };
+        }
+
+        if (description) payload = { ...payload, part_desc: description };
 
         return await partModel.updateById(partId, payload);
     }
@@ -92,6 +124,41 @@ class PartService {
             results: results,
             pagination: pagination,
         };
+    }
+
+    static async delete(partId) {
+        const foundPart = await partModel.findById(partId);
+
+        if (!foundPart) throw new NotfoundRequestError(`Không tìm thấy part có id ${partId}`);
+
+        const [foundForeignTest, foundForeignQuestion] = await Promise.all([
+            testPartModel.findOne({ part_id: partId }),
+            questionTypeModel.findOne({ part_id: partId }),
+        ]);
+
+        if (foundForeignTest) {
+            throw new ConflictRequestError(
+                "Không thể xóa part vì đang được sử dụng trong bài kiểm tra",
+                undefined,
+                {
+                    partName: foundPart.part_name,
+                }
+            );
+        }
+
+        if (foundForeignQuestion) {
+            throw new ConflictRequestError(
+                "Không thể xóa part vì đang được sử dụng trong câu hỏi",
+                undefined,
+                {
+                    partName: foundPart.part_name,
+                }
+            );
+        }
+
+        const deletedPart = await partModel.deleteOne({ part_id: partId });
+
+        return deletedPart.affectedRows;
     }
 }
 

@@ -16,6 +16,33 @@ class ExamController {
         return new OK({ message: "Get exam successfully", metadata: exam }).send(res);
     }
 
+    async countExamFullTest(req, res) {
+        const { userId } = req.user;
+        const resultCount = await ExamService.countExamFullTest(userId);
+        return new OK({
+            message: "Get count exam full test successfully",
+            metadata: resultCount,
+        }).send(res);
+    }
+
+    async sumTotalTimeExam(req, res) {
+        const { userId } = req.user;
+        const resultSum = await ExamService.sumTotalTimeExam(userId);
+        return new OK({
+            message: "Get sum exam full test successfully",
+            metadata: resultSum,
+        }).send(res);
+    }
+
+    async getMaxQuestionCorrectByUserId(req, res) {
+        const { userId } = req.user;
+        const resultSum = await ExamService.getMaxQuestionCorrectByUserId(userId);
+        return new OK({
+            message: "Get max question correct by user successfully",
+            metadata: resultSum,
+        }).send(res);
+    }
+
     async find(req, res) {
         const user = req.user;
 

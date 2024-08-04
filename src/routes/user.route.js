@@ -7,7 +7,11 @@ const userController = require("../controllers/user.controller");
 const { authentication } = require("../middleware/auth.middleware");
 const grantAccess = require("../middleware/rbac.middleware");
 const { READ_ANY, CREATE_OWN, UPDATE_OWN } = require("../constants/rbac.constant");
-const { addTeacherSchema, updateProfileSchema } = require("../schemas/user.schema");
+const {
+    addTeacherSchema,
+    updateProfileSchema,
+    changeStatusSchema,
+} = require("../schemas/user.schema");
 const { validateData } = require("../middleware/validate.middleware");
 
 route.use(authentication);
@@ -26,6 +30,12 @@ route.patch(
     `/`,
     [grantAccess(UPDATE_OWN, "user"), validateData(updateProfileSchema)],
     asyncHandler(userController.updateProfile)
+);
+
+route.patch(
+    `/status`,
+    [grantAccess(UPDATE_OWN, "user"), validateData(changeStatusSchema)],
+    asyncHandler(userController.changeStatus)
 );
 
 module.exports = route;

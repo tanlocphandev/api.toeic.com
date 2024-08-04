@@ -14,7 +14,7 @@ const {
 const { authentication } = require("../middleware/auth.middleware");
 const { uploadDisk } = require("../configs/multer.config");
 const grantAccess = require("../middleware/rbac.middleware");
-const { CREATE_ANY, UPDATE_ANY } = require("../constants/rbac.constant");
+const { CREATE_ANY, UPDATE_ANY, DELETE_ANY } = require("../constants/rbac.constant");
 
 route.get(`/`, asyncHandler(partController.find));
 route.get("/:partId", asyncHandler(partController.findById));
@@ -50,5 +50,7 @@ route.patch(
     validateData(createPartSchema),
     asyncHandler(partController.update)
 );
+
+route.delete(`/:partId`, grantAccess(DELETE_ANY, "part"), asyncHandler(partController.delete));
 
 module.exports = route;

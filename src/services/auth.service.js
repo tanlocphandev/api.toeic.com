@@ -81,6 +81,20 @@ class AuthService {
         const match = await bcrypt.compare(password, user.user_password);
         if (!match) throw new AuthFailureError("Sai email hoặc mật không trùng khớp");
 
+        // Check status user active
+        if (user.user_status === "inactive") {
+            throw new AuthFailureError(
+                "Tài khoản của bạn đã bị vô hiệu hóa. Vui lòng liên hệ quản trị viên để được cấp lại!"
+            );
+        }
+
+        // Check status user deleted
+        if (user.user_status === "deleted") {
+            throw new AuthFailureError(
+                "Tài khoản của bạn đã bị xóa. Vui lòng liên hệ quản trị viên để giải đáp thắc mắc!"
+            );
+        }
+
         // Generate public and private key
         const privateKey = Crypto.generateKey();
         const publicKey = Crypto.generateKey();

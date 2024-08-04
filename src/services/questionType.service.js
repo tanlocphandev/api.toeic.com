@@ -10,7 +10,7 @@ class QuestionTypeService {
         return response;
     }
 
-    static async create({ typeName }) {
+    static async create({ typeName, partId }) {
         // Check if the type already exists
         const foundType = await questionTypeModel.findByName(typeName);
 
@@ -22,6 +22,7 @@ class QuestionTypeService {
 
         const payload = {
             type_name: typeName,
+            part_id: partId,
         };
 
         const newType = await questionTypeModel.insert(payload);
@@ -58,7 +59,7 @@ class QuestionTypeService {
         // Check if the type already exists
         const foundType = await questionTypeModel.findByName(typeName);
 
-        if (foundType && foundType.type_id !== typeId) {
+        if (foundType && foundType.type_id !== +typeId) {
             throw new ConflictRequestError("Tên loại câu hỏi đã tồn tại", undefined, {
                 typeName: "Tên loại câu hỏi đã tồn tại",
             });

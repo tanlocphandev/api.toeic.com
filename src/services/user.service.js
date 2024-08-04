@@ -91,6 +91,18 @@ class UserService {
 
         return updated.affectedRows;
     }
+
+    static async changeStatus(userId, status) {
+        const foundUser = await userModel.findById(userId);
+
+        if (!foundUser) {
+            throw new NotfoundRequestError("Không tìm thấy tài khoản");
+        }
+
+        const updated = await userModel.updateById(userId, { user_status: status });
+
+        return updated.affectedRows;
+    }
 }
 
 module.exports = UserService;

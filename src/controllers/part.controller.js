@@ -14,8 +14,8 @@ class PartController {
     }
 
     async create(req, res) {
-        const { partName } = req.body;
-        const part = await PartService.create({ partName });
+        const { partName, description = "", partNumber } = req.body;
+        const part = await PartService.create({ partName, description, partNumber });
 
         return new Created({
             message: "Create part successfully",
@@ -25,8 +25,8 @@ class PartController {
 
     async update(req, res) {
         const { partId } = req.params;
-        const { partName } = req.body;
-        const part = await PartService.update(partId, { partName });
+        const { partName, description = "", partNumber = -1 } = req.body;
+        const part = await PartService.update(partId, { partName, partNumber, description });
 
         return new OK({
             message: "Update part successfully",
@@ -51,6 +51,16 @@ class PartController {
             message: "Find part successfully",
             metadata: results,
             options: pagination,
+        }).send(res);
+    }
+
+    async delete(req, res) {
+        const { partId } = req.params;
+        const part = await PartService.delete(partId);
+
+        return new OK({
+            message: "Delete part successfully",
+            metadata: part,
         }).send(res);
     }
 }

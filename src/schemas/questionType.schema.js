@@ -5,6 +5,7 @@ const createQuestionTypeSchema = z.object({
         .string({ required_error: "Tên loại câu hỏi là trường bắt buộc" })
         .min(2, "Ít nhất 2 kí tự!")
         .max(255, "Nhiều nhất 255 kí tự!"),
+    partId: z.string({ required_error: "Phần là trường bắt buộc" }).optional().nullable(),
 });
 
 module.exports = { createQuestionTypeSchema };

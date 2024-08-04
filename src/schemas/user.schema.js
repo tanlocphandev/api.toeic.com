@@ -45,4 +45,12 @@ const updateProfileSchema = z.object({
     avatar: z.any().optional(),
 });
 
-module.exports = { addTeacherSchema, updateProfileSchema };
+const changeStatusSchema = z.object({
+    userId: z.number({ required_error: "Mã người dùng là trường bắt buộc!" }),
+    status: z.enum(["active", "inactive", "deleted"], {
+        required_error: "Trạng thái là trường bắt buộc!",
+        message: "Trạng thái phải là: active, inactive hoặc deleted",
+    }),
+});
+
+module.exports = { addTeacherSchema, updateProfileSchema, changeStatusSchema };

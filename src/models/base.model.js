@@ -55,6 +55,10 @@ class BaseModel {
             id,
         ]);
 
+        console.log("====================================");
+        console.log(`sql update by id`, sql);
+        console.log("====================================");
+
         const result = await this.db.execute(sql);
 
         return result;
@@ -193,7 +197,23 @@ class BaseModel {
 
         const [result] = await this.db.query(sql);
 
-        return result.count;
+        return result.count || 0;
+    }
+
+    async sum(conditions, column) {
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
+
+        const sql = format(`SELECT SUM(??) as sum FROM ?? ${query}`, [
+            column,
+            this.tableName,
+            ...value,
+        ]);
+
+        console.log(`sql sum`, { sql });
+
+        const [result] = await this.db.query(sql);
+
+        return result.sum || 0;
     }
 
     async callProcedure({ procedureName, params = [] }) {

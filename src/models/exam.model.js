@@ -85,6 +85,53 @@ class ExamModel extends BaseModel {
         return reading.reading_score + listening.listening_score;
     }
 
+    async getMaxQuestionCorrectByUserId(userId) {
+        let result = await super.callProcedure({
+            procedureName: "prod_get_max_question_correct_by_userId",
+            params: [userId],
+        });
+
+        if (!result?.length) return [];
+
+        result = await Promise.all(
+            result.map(async (row) => {
+                let resultScore = null;
+
+                if (row.score_id) {
+                    const [foundScoreReading, foundScoreListening] = await Promise.all([
+                        scoreDetailsModel.findOne({
+                            score_id: row.score_id,
+                            number_correct_answer: row.exam_count_reading_correct,
+                        }),
+                        scoreDetailsModel.findOne({
+                            score_id: row.score_id,
+                            number_correct_answer: row.exam_count_listening_correct,
+                        }),
+                    ]);
+
+                    if (foundScoreReading && foundScoreListening) {
+                        resultScore = {
+                            reading: foundScoreReading,
+                            listening: foundScoreListening,
+                        };
+
+                        const totalScore = this._calculateTotalScore(resultScore);
+
+                        resultScore = { ...resultScore, totalScore };
+                    }
+                }
+
+                return { ...row, score: resultScore };
+            })
+        );
+
+        // console.log("====================================");
+        // console.log(`getMaxQuestionCorrectByUserId::`, result);
+        // console.log("====================================");
+
+        return result;
+    }
+
     async findById(examId) {
         const response = await super.findOne({ exam_id: examId });
 
@@ -93,30 +140,26 @@ class ExamModel extends BaseModel {
         let resultScore = null;
 
         if (response.score_id) {
-            const score = await scoreModel.findById(response.score_id);
+            const [foundScoreReading, foundScoreListening] = await Promise.all([
+                scoreDetailsModel.findOne({
+                    score_id: response.score_id,
+                    number_correct_answer: response.exam_count_reading_correct,
+                }),
+                scoreDetailsModel.findOne({
+                    score_id: response.score_id,
+                    number_correct_answer: response.exam_count_listening_correct,
+                }),
+            ]);
 
-            if (score) {
-                const [foundScoreReading, foundScoreListening] = await Promise.all([
-                    scoreDetailsModel.findOne({
-                        score_id: score.score_id,
-                        number_correct_answer: response.exam_count_reading_correct,
-                    }),
-                    scoreDetailsModel.findOne({
-                        score_id: score.score_id,
-                        number_correct_answer: response.exam_count_listening_correct,
-                    }),
-                ]);
+            if (foundScoreReading && foundScoreListening) {
+                resultScore = {
+                    reading: foundScoreReading,
+                    listening: foundScoreListening,
+                };
 
-                if (foundScoreReading && foundScoreListening) {
-                    resultScore = {
-                        reading: foundScoreReading,
-                        listening: foundScoreListening,
-                    };
+                const totalScore = this._calculateTotalScore(resultScore);
 
-                    const totalScore = this._calculateTotalScore(resultScore);
-
-                    resultScore = { ...resultScore, totalScore };
-                }
+                resultScore = { ...resultScore, totalScore };
             }
         }
 
@@ -140,18 +183,17 @@ class ExamModel extends BaseModel {
                 results.map(async (row) => {
                     const test = await testModel.findById(row.test_id);
                     const questionType = await questionTypeModel.findById(row.question_type_id);
-                    const score = await scoreModel.findById(row.score_id);
 
                     let resultScore = null;
 
-                    if (score) {
+                    if (row.score_id) {
                         const [foundScoreReading, foundScoreListening] = await Promise.all([
                             scoreDetailsModel.findOne({
-                                score_id: score.score_id,
+                                score_id: row.score_id,
                                 number_correct_answer: row.exam_count_reading_correct,
                             }),
                             scoreDetailsModel.findOne({
-                                score_id: score.score_id,
+                                score_id: row.score_id,
                                 number_correct_answer: row.exam_count_listening_correct,
                             }),
                         ]);

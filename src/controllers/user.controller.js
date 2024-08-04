@@ -29,6 +29,15 @@ class UserController {
             metadata: await UserService.updateProfile(userId, req.body),
         }).send(res);
     }
+
+    async changeStatus(req, res) {
+        const { status, userId } = req.body;
+
+        return new OK({
+            message: "Change status successfully",
+            metadata: await UserService.changeStatus(userId, status),
+        }).send(res);
+    }
 }
 
 module.exports = new UserController();

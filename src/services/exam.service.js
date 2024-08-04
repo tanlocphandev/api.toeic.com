@@ -10,6 +10,7 @@ const { mapValue, mapperUnSelect } = require("../utils");
 const { BadRequestError } = require("../core/error.response");
 const { scoreModel } = require("../models/score.model");
 const MysqlHelper = require("../helpers/mysql.helper");
+const { EXAM_TYPES } = require("../constants");
 
 class ExamService {
     static async create({ answers = {}, testId, userId, questionTypeId = null, timer, examType }) {
@@ -160,6 +161,31 @@ class ExamService {
             results: results,
             pagination: pagination,
         };
+    }
+
+    static async countExamFullTest(userId) {
+        const result = await examModel.count({
+            user_id: userId,
+            exam_type: EXAM_TYPES.FULL_TEST,
+        });
+
+        return result;
+    }
+
+    static async sumTotalTimeExam(userId) {
+        const result = await examModel.sum(
+            {
+                user_id: userId,
+                exam_type: EXAM_TYPES.FULL_TEST,
+            },
+            "exam_used_timer"
+        );
+
+        return result;
+    }
+
+    static async getMaxQuestionCorrectByUserId(userId) {
+        return await examModel.getMaxQuestionCorrectByUserId(userId);
     }
 }
 

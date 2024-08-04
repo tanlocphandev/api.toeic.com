@@ -13,7 +13,27 @@ const grantAccess = require("../middleware/rbac.middleware");
 route.use(authentication);
 
 route.get(`/`, grantAccess(READ_ANY, "exam"), asyncHandler(examController.find));
+
+route.get(
+    `/count-full-test`,
+    grantAccess(READ_ANY, "exam"),
+    asyncHandler(examController.countExamFullTest)
+);
+
+route.get(
+    `/sum-total-time-exam`,
+    grantAccess(READ_ANY, "exam"),
+    asyncHandler(examController.sumTotalTimeExam)
+);
+
+route.get(
+    `/max-question-correct`,
+    grantAccess(READ_ANY, "exam"),
+    asyncHandler(examController.getMaxQuestionCorrectByUserId)
+);
+
 route.get(`/:examId`, grantAccess(READ_OWN, "exam"), asyncHandler(examController.getById));
+
 route.post(
     `/`,
     grantAccess(CREATE_ANY, "exam"),
