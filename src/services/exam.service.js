@@ -6,11 +6,12 @@ const { answerModel } = require("../models/answer.model");
 const { testModel } = require("../models/test.model");
 const { questionTypeModel } = require("../models/questionType.model");
 const Transaction = require("../db/transaction.db");
-const { mapValue, mapperUnSelect } = require("../utils");
-const { BadRequestError } = require("../core/error.response");
+const { mapValue, mapperUnSelect, mapperSelect } = require("../utils");
+const { BadRequestError, NotfoundRequestError } = require("../core/error.response");
 const { scoreModel } = require("../models/score.model");
 const MysqlHelper = require("../helpers/mysql.helper");
 const { EXAM_TYPES } = require("../constants");
+const { userModel } = require("../models/user.model");
 
 class ExamService {
     static async create({ answers = {}, testId, userId, questionTypeId = null, timer, examType }) {
@@ -18,13 +19,30 @@ class ExamService {
 
         try {
             // foundScore
-            const foundScore = await Transaction.findOne({
-                tableName: scoreModel.tableName,
-                conditions: {
-                    score_status: "active",
-                },
-                connection,
-            });
+            const [foundScore, foundUser] = await Promise.all([
+                Transaction.findOne({
+                    tableName: scoreModel.tableName,
+                    conditions: {
+                        score_status: "active",
+                    },
+                    connection,
+                }),
+                Transaction.findOne({
+                    tableName: userModel.tableName,
+                    conditions: {
+                        user_id: userId,
+                    },
+                    connection,
+                }),
+            ]);
+
+            if (!foundUser) {
+                throw new NotfoundRequestError("Không tìm thấy tài khoản người dùng");
+            }
+
+            if (!foundScore) {
+                throw new NotfoundRequestError("Không tìm thấy bảng điểm");
+            }
 
             // prepare data insert exam
             const payload = {
@@ -36,6 +54,7 @@ class ExamService {
                 exam_count_listening_correct: 0,
                 exam_type: examType,
                 exam_used_timer: timer,
+                exam_target: foundUser?.user_exam_target || 500,
                 score_id: foundScore?.score_id || null,
                 user_id: userId,
                 test_id: testId,
@@ -186,6 +205,12 @@ class ExamService {
 
     static async getMaxQuestionCorrectByUserId(userId) {
         return await examModel.getMaxQuestionCorrectByUserId(userId);
+    }
+
+    static async statisticByDate(userId) {
+        const response = await examModel.statisticByDate(userId);
+
+        return response;
     }
 }
 

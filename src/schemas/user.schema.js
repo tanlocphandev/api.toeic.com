@@ -43,6 +43,12 @@ const updateProfileSchema = z.object({
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Ngày sinh không đúng định dạng, mong đợi YYYY-MM-DD")
         .optional(),
     avatar: z.any().optional(),
+    target: z
+        .number()
+        .min(0, "Điểm mục tiêu phải lớn bằng 0")
+        .max(990, "Điểm mục tiêu phải nhiều nhất 990")
+        .optional()
+        .nullable(),
 });
 
 const changeStatusSchema = z.object({

@@ -87,6 +87,10 @@ class UserService {
             payload["user_avatar"] = mapValue({ rawValue: body.avatar, isJson: true });
         }
 
+        if (body.target) {
+            payload["user_exam_target"] = body.target;
+        }
+
         const updated = await userModel.updateById(userId, payload);
 
         return updated.affectedRows;

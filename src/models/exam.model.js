@@ -8,6 +8,8 @@ const { questionTypeModel } = require("./questionType.model");
 const { testModel } = require("./test.model");
 const { scoreModel } = require("./score.model");
 const { scoreDetailsModel } = require("./scoreDetail.model");
+const MysqlHelper = require("../helpers/mysql.helper");
+const { EXAM_TYPES } = require("../constants");
 
 class ExamDao extends SoftDeleteModel {
     constructor({
@@ -20,6 +22,7 @@ class ExamDao extends SoftDeleteModel {
         exam_count_question_skip,
         exam_type,
         exam_used_timer,
+        exam_target,
         score_id,
         user_id,
         test_id,
@@ -38,6 +41,7 @@ class ExamDao extends SoftDeleteModel {
         this.exam_count_question_wrong = exam_count_question_wrong;
         this.exam_count_question_skip = exam_count_question_skip;
         this.exam_type = exam_type;
+        this.exam_target = exam_target;
         this.exam_used_timer = exam_used_timer;
         this.score_id = score_id;
         this.user_id = user_id;
@@ -56,6 +60,7 @@ class ExamDao extends SoftDeleteModel {
                 exam_count_question_wrong: 1,
                 exam_count_question_skip: 1,
                 exam_type: 1,
+                exam_target: 1,
                 exam_used_timer: 1,
                 score_id: 1,
                 user_id: 1,
@@ -229,6 +234,50 @@ class ExamModel extends BaseModel {
         const results = data.map((row) => new ExamDao(row));
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
+    }
+
+    async statisticByDate(userId) {
+        const response = await super.find({
+            user_id: userId,
+            score_id: MysqlHelper.isNotNull(),
+            exam_type: EXAM_TYPES.FULL_TEST,
+        });
+
+        let results = response.map((row) => new ExamDao(row));
+
+        results = await Promise.all(
+            results.map(async (row) => {
+                let resultScore = null;
+
+                if (row.score_id) {
+                    const [foundScoreReading, foundScoreListening] = await Promise.all([
+                        scoreDetailsModel.findOne({
+                            score_id: row.score_id,
+                            number_correct_answer: row.exam_count_reading_correct,
+                        }),
+                        scoreDetailsModel.findOne({
+                            score_id: row.score_id,
+                            number_correct_answer: row.exam_count_listening_correct,
+                        }),
+                    ]);
+
+                    if (foundScoreReading && foundScoreListening) {
+                        resultScore = {
+                            reading: foundScoreReading,
+                            listening: foundScoreListening,
+                        };
+
+                        const totalScore = this._calculateTotalScore(resultScore);
+
+                        resultScore = { ...resultScore, totalScore };
+                    }
+                }
+
+                return { ...row, score: resultScore };
+            })
+        );
+
+        return results;
     }
 }
 

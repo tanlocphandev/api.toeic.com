@@ -43,6 +43,15 @@ class ExamController {
         }).send(res);
     }
 
+    async statisticByDate(req, res) {
+        const { userId } = req.user;
+        const resultSum = await ExamService.statisticByDate(userId);
+        return new OK({
+            message: "Get statistic by date successfully",
+            metadata: resultSum,
+        }).send(res);
+    }
+
     async find(req, res) {
         const user = req.user;
 

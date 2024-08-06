@@ -23,6 +23,8 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 ALTER TABLE `users` CHANGE `user_avatar` `user_avatar` JSON DEFAULT NULL;
 
+ALTER TABLE `users` ADD IF NOT EXISTS `user_exam_target` INT DEFAULT 550 CHECK(user_exam_target > 0 AND user_exam_target <= 990) AFTER `user_dob`;
+
 ALTER TABLE `users` CHANGE `user_role` `user_role` enum('admin', 'user', 'teacher') DEFAULT NULL;
 
 CREATE TABLE IF NOT EXISTS `key_tokens` (
@@ -289,7 +291,7 @@ CREATE TABLE IF NOT EXISTS `exams` (
   PRIMARY KEY (`exam_id`)
 ) ENGINE = InnoDB DEFAULT CHARSET=utf8;
 
-
+ALTER TABLE `exams` ADD IF NOT EXISTS `exam_target` INT DEFAULT 550 CHECK(exam_target > 0 AND exam_target <= 990) AFTER `exam_type`;
 ALTER TABLE `exams` CHANGE IF EXISTS `exam_total_answer` `exam_total_question` INT NOT NULL;
 ALTER TABLE `exams` ADD IF NOT EXISTS `exam_count_listening_correct` INT DEFAULT 0 AFTER `exam_count_question_correct`;
 ALTER TABLE `exams` ADD IF NOT EXISTS `exam_count_reading_correct` INT DEFAULT 0 AFTER `exam_count_question_correct`;

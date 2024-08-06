@@ -32,6 +32,12 @@ route.get(
     asyncHandler(examController.getMaxQuestionCorrectByUserId)
 );
 
+route.get(
+    `/statistic-by-date`,
+    grantAccess(READ_ANY, "exam"),
+    asyncHandler(examController.statisticByDate)
+);
+
 route.get(`/:examId`, grantAccess(READ_OWN, "exam"), asyncHandler(examController.getById));
 
 route.post(

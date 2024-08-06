@@ -20,6 +20,7 @@ class UserDao extends TimestampModel {
         user_role,
         user_dob,
         user_status,
+        user_exam_target,
         user_verify,
         created_at,
         updated_at,
@@ -36,6 +37,7 @@ class UserDao extends TimestampModel {
         this.user_avatar = user_avatar;
         this.user_role = user_role;
         this.user_dob = user_dob;
+        this.user_exam_target = user_exam_target;
         this.user_status = user_status;
         this.user_verify = user_verify;
     }
@@ -52,6 +54,7 @@ class UserDao extends TimestampModel {
                 user_sex: 1,
                 user_avatar: 1,
                 user_role: 1,
+                user_exam_target: 1,
                 user_dob: 1,
                 user_status: 1,
                 user_verify: 1,
