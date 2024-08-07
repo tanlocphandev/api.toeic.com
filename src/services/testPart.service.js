@@ -3,8 +3,8 @@
 const { testPartModel } = require("../models/testPart.model");
 
 class TestPartService {
-    static async getByPartId(partId) {
-        const results = await testPartModel.findByPartId(partId);
+    static async getByPartId({ partId, userId, questionSlug }) {
+        const results = await testPartModel.findByPartId({ partId, userId, questionSlug });
 
         const years = [];
 

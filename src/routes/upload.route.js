@@ -70,8 +70,8 @@ route.post(
         uploadDisk.single("file"),
         validateFileNotFound(`Không tìm thấy file excel upload!`),
         validateExtFile({
-            extFile: ["jpg", "jpeg", "png", "webp", "JPG", "JPEG", "PNG"],
-            message: `File upload chỉ cho phép có đuôi "jpg", "jpeg", "png", "webp" "JPG", "JPEG", "PNG" !`,
+            extFile: ["jpg", "jpeg", "png", "webp", "jfif", "JPG", "JPEG", "PNG"],
+            message: `File upload chỉ cho phép có đuôi "jpg", "jpeg", "png", "webp", "jfif", "JPG", "JPEG", "PNG" !`,
         }),
     ],
     asyncHandler(uploadController.uploadImage)

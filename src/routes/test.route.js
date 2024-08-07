@@ -12,14 +12,19 @@ const {
     validateFieldsInFile,
 } = require("../middleware/validate.middleware");
 const { uploadDisk } = require("../configs/multer.config");
-const { authentication, checkRoles } = require("../middleware/auth.middleware");
-const { USER_ROLES } = require("../constants");
-const { CREATE_ANY, UPDATE_ANY } = require("../constants/rbac.constant");
+const { authentication } = require("../middleware/auth.middleware");
+const { CREATE_ANY, UPDATE_ANY, READ_ANY } = require("../constants/rbac.constant");
 const grantAccess = require("../middleware/rbac.middleware");
 
 route.use(authentication);
 
 route.get(`/`, asyncHandler(testController.find));
+route.get(
+    "/percent-join-exam-test",
+    grantAccess(READ_ANY, "test"),
+    asyncHandler(testController.percentJoinExamTest)
+);
+
 route.get("/with/years", asyncHandler(testController.getTestWithYears));
 route.get("/:testId", asyncHandler(testController.findById));
 

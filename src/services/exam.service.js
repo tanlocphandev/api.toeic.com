@@ -19,7 +19,7 @@ class ExamService {
 
         try {
             // foundScore
-            const [foundScore, foundUser] = await Promise.all([
+            const [foundScore, foundUser, foundUserJoined] = await Promise.all([
                 Transaction.findOne({
                     tableName: scoreModel.tableName,
                     conditions: {
@@ -31,6 +31,17 @@ class ExamService {
                     tableName: userModel.tableName,
                     conditions: {
                         user_id: userId,
+                    },
+                    connection,
+                }),
+                Transaction.findOne({
+                    tableName: examModel.tableName,
+                    conditions: {
+                        user_id: userId,
+                        test_id: testId,
+                        question_type_id: MysqlHelper.isNull(),
+                        score_id: MysqlHelper.isNotNull(),
+                        exam_type: EXAM_TYPES.FULL_TEST,
                     },
                     connection,
                 }),
@@ -61,16 +72,19 @@ class ExamService {
                 question_type_id: mapValue({ rawValue: questionTypeId }),
             };
 
-            await Transaction.update({
-                tableName: testModel.tableName,
-                data: {
-                    test_user_count: MysqlHelper.inc("test_user_count", 1),
-                },
-                conditions: {
-                    test_id: testId,
-                },
-                connection,
-            });
+            // Tính số người tham gia bài test nàt
+            if (examType === EXAM_TYPES.FULL_TEST && !foundUserJoined) {
+                await Transaction.update({
+                    tableName: testModel.tableName,
+                    data: {
+                        test_user_count: MysqlHelper.inc("test_user_count", 1),
+                    },
+                    conditions: {
+                        test_id: testId,
+                    },
+                    connection,
+                });
+            }
 
             const answerToArray = Object.entries(answers).map(([questionId, answerId]) => ({
                 questionId,

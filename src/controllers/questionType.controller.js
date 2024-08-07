@@ -14,8 +14,8 @@ class QuestionTypeController {
     }
 
     async create(req, res) {
-        const { typeName, partId } = req.body;
-        const type = await QuestionTypeService.create({ typeName, partId });
+        const { typeName, partId, description = "", thumb = null } = req.body;
+        const type = await QuestionTypeService.create({ typeName, partId, description, thumb });
 
         return new Created({
             message: "Create question type successfully",
@@ -25,8 +25,12 @@ class QuestionTypeController {
 
     async update(req, res) {
         const { typeId } = req.params;
-        const { typeName, partId = null } = req.body;
-        const type = await QuestionTypeService.update(typeId, { typeName, partId });
+        const { typeName, description = "", thumb = null } = req.body;
+        const type = await QuestionTypeService.update(typeId, {
+            typeName,
+            description,
+            thumb,
+        });
 
         return new OK({
             message: "Update question type successfully",

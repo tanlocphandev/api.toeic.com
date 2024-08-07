@@ -6,7 +6,6 @@ const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
 const { questionTypeModel } = require("./questionType.model");
 const { testModel } = require("./test.model");
-const { scoreModel } = require("./score.model");
 const { scoreDetailsModel } = require("./scoreDetail.model");
 const MysqlHelper = require("../helpers/mysql.helper");
 const { EXAM_TYPES } = require("../constants");
@@ -186,8 +185,10 @@ class ExamModel extends BaseModel {
 
             results = await Promise.all(
                 results.map(async (row) => {
-                    const test = await testModel.findById(row.test_id);
-                    const questionType = await questionTypeModel.findById(row.question_type_id);
+                    const [test, questionType] = await Promise.all([
+                        testModel.findById(row.test_id),
+                        questionTypeModel.findById(row.question_type_id),
+                    ]);
 
                     let resultScore = null;
 

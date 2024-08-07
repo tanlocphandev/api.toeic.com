@@ -6,6 +6,8 @@ const BaseModel = require("./base.model");
 const { filterPropOutsideInstance } = require("../utils");
 const { testModel } = require("./test.model");
 const { partModel } = require("./part.model");
+const { examModel } = require("./exam.model");
+const { questionTypeModel } = require("./questionType.model");
 
 class TestPartDao extends TimestampModel {
     constructor({ part_id, test_id, created_at, updated_at }) {
@@ -53,8 +55,19 @@ class TestPartModel extends BaseModel {
         return { ...testPart, test, part };
     }
 
-    async findByPartId(partId) {
-        const response = await super.find({ part_id: partId });
+    _percentCorrect(maxCorrectExam) {
+        if (!maxCorrectExam) return 0;
+
+        const { exam_total_question, exam_count_question_correct } = maxCorrectExam;
+
+        return Math.round((exam_count_question_correct / exam_total_question) * 100);
+    }
+
+    async findByPartId({ partId, userId, questionSlug }) {
+        const [response, questionType] = await Promise.all([
+            super.find({ part_id: partId }),
+            questionTypeModel.findBySlug(questionSlug),
+        ]);
 
         if (!response.length) return [];
 
@@ -62,10 +75,33 @@ class TestPartModel extends BaseModel {
 
         result = await Promise.all(
             result.map(async (t) => {
-                const test = await testModel.findById(t.test_id);
-                const part = await partModel.findById(t.part_id);
+                const [test, part, maxCorrectExam, countJoinExam] = await Promise.all([
+                    testModel.findById(t.test_id),
+                    partModel.findById(t.part_id),
+                    examModel.maxRow({
+                        conditions: {
+                            test_id: t.test_id,
+                            user_id: userId,
+                            question_type_id: questionType.type_id,
+                        },
+                        column: "exam_count_question_correct",
+                        idColumn: "exam_id",
+                    }),
+                    examModel.count({
+                        test_id: t.test_id,
+                        user_id: userId,
+                        question_type_id: questionType.type_id,
+                    }),
+                ]);
 
-                return { ...t, test, part };
+                return {
+                    ...t,
+                    test,
+                    part,
+                    countJoinExam,
+                    maxCorrectExam,
+                    percentCorrect: this._percentCorrect(maxCorrectExam),
+                };
             })
         );
 

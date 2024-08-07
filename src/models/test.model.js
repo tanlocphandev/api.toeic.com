@@ -5,6 +5,8 @@ const { generateSlug, filterPropOutsideInstance, parseValueToJson } = require(".
 const BaseModel = require("./base.model");
 const SoftDeleteModel = require("./common/softDelete.model");
 const { commentModel } = require("./comment.model");
+const MysqlHelper = require("../helpers/mysql.helper");
+const { EXAM_TYPES } = require("../constants");
 
 class TestDao extends SoftDeleteModel {
     constructor({
@@ -123,12 +125,20 @@ class TestModel extends BaseModel {
 
         if (!data.length) return { results: [], pagination: { totalPage, totalRow, page, limit } };
 
-        const results = data.map((row) => new TestDao(row));
+        let results = data.map((row) => new TestDao(row));
 
         return { results: results, pagination: { totalPage, totalRow, page, limit } };
     }
 
-    async getTestWithYears() {
+    _percentCorrect(maxCorrectExam) {
+        if (!maxCorrectExam) return 0;
+
+        const { exam_total_question, exam_count_question_correct } = maxCorrectExam;
+
+        return Math.round((exam_count_question_correct / exam_total_question) * 100);
+    }
+
+    async getTestWithYears(userId) {
         const response = await super.find(null, { key: "test_of_year", value: "ASC" });
 
         if (!response.length) return [];
@@ -141,7 +151,25 @@ class TestModel extends BaseModel {
                     test_id: t.test_id,
                     comment_status: "active",
                 });
-                return { ...t, test_comment_count: test_comment_count };
+
+                const foundMaxExamByTest = await commentModel.maxRow({
+                    tableName: "exams",
+                    conditions: {
+                        test_id: t.test_id,
+                        user_id: userId,
+                        question_type_id: MysqlHelper.isNull(),
+                        exam_type: EXAM_TYPES.FULL_TEST,
+                        score_id: MysqlHelper.isNotNull(),
+                    },
+                    column: "exam_count_question_correct",
+                    idColumn: "exam_id",
+                });
+
+                return {
+                    ...t,
+                    test_comment_count: test_comment_count,
+                    percentCorrect: this._percentCorrect(foundMaxExamByTest),
+                };
             })
         );
 

@@ -3,6 +3,8 @@
 const { ConflictRequestError, NotfoundRequestError } = require("../core/error.response");
 const { questionTypeModel } = require("../models/questionType.model");
 const { questionModel } = require("../models/question.model");
+const { generateSlug, mapValue, parseValueToJson } = require("../utils");
+const cloudinary = require("../libs/cloudinary.lib");
 
 class QuestionTypeService {
     static async findBySlug(slug) {
@@ -10,7 +12,7 @@ class QuestionTypeService {
         return response;
     }
 
-    static async create({ typeName, partId }) {
+    static async create({ typeName, partId, description = "", thumb = null }) {
         // Check if the type already exists
         const foundType = await questionTypeModel.findByName(typeName);
 
@@ -22,7 +24,10 @@ class QuestionTypeService {
 
         const payload = {
             type_name: typeName,
+            type_slug: generateSlug(typeName),
             part_id: partId,
+            type_description: description,
+            type_thumb: mapValue({ rawValue: thumb, isJson: true }),
         };
 
         const newType = await questionTypeModel.insert(payload);
@@ -55,7 +60,7 @@ class QuestionTypeService {
         return newTypes;
     }
 
-    static async update(typeId, { typeName }) {
+    static async update(typeId, { typeName, description = "", thumb = null }) {
         // Check if the type already exists
         const foundType = await questionTypeModel.findByName(typeName);
 
@@ -65,9 +70,34 @@ class QuestionTypeService {
             });
         }
 
+        let foundTypeInQuestion = await questionTypeModel.findOne({
+            type_id: typeId,
+        });
+
+        if (!foundTypeInQuestion) {
+            throw new NotfoundRequestError(`Không tìm thấy loại câu hỏi có id ${typeId}`);
+        }
+
         const payload = {
             type_name: typeName,
+            type_slug: generateSlug(typeName),
         };
+
+        if (description) payload.type_desc = description;
+
+        if (thumb) {
+            payload.type_thumb = mapValue({ rawValue: thumb, isJson: true });
+
+            foundTypeInQuestion = {
+                ...foundTypeInQuestion,
+                type_thumb: parseValueToJson({ value: foundTypeInQuestion.type_thumb }),
+            };
+
+            if (foundTypeInQuestion.type_thumb?.public_id) {
+                // remove file from cloudinary
+                await cloudinary.destroy(foundDoc.doc_video?.public_id);
+            }
+        }
 
         return await questionTypeModel.updateById(typeId, payload);
     }
@@ -106,6 +136,11 @@ class QuestionTypeService {
 
         if (foundTypeInQuestion) {
             throw new NotfoundRequestError("Loại câu hỏi đang được sử dụng vào câu hỏi");
+        }
+
+        if (foundType.type_thumb?.public_id) {
+            // remove file from cloudinary
+            await cloudinary.destroy(foundType.type_thumb?.public_id);
         }
 
         const deleted = await questionTypeModel.deleteOne({ type_id: typeId });

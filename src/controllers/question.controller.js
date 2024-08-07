@@ -34,6 +34,15 @@ class QuestionController {
         }).send(res);
     }
 
+    async updateQuestion(req, res) {
+        const { questionId } = req.params;
+
+        return new OK({
+            message: "Update questions successfully",
+            metadata: await QuestionService.updateQuestion(questionId, req.body),
+        }).send(res);
+    }
+
     async find(req, res) {
         const { results, pagination } = await QuestionService.find(req.query);
 

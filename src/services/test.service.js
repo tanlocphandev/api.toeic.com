@@ -12,6 +12,9 @@ const { answerModel } = require("../models/answer.model");
 const { tagModel } = require("../models/tag.model");
 const { questionTagModel } = require("../models/questionTag.model");
 const { generateSlug, generateRandomString, mapValue, asyncPool } = require("../utils");
+const MysqlHelper = require("../helpers/mysql.helper");
+const { examModel } = require("../models/exam.model");
+const { EXAM_TYPES } = require("../constants");
 
 class TestService {
     static async create({ testName, testOfYear, testNoOfYear, duration }) {
@@ -112,8 +115,8 @@ class TestService {
         };
     }
 
-    static async getTestWithYears() {
-        return await testModel.getTestWithYears();
+    static async getTestWithYears(userId) {
+        return await testModel.getTestWithYears(userId);
     }
 
     static async createWithUploadQuestion({
@@ -537,6 +540,24 @@ class TestService {
         } finally {
             await Transaction.release(connection);
         }
+    }
+
+    static async percentJoinExamTest(userId) {
+        const countTest = await testModel.count({
+            deleted_at: MysqlHelper.isNull(),
+        });
+
+        const countJoinTest = await examModel.count(
+            {
+                user_id: userId,
+                score_id: MysqlHelper.isNotNull(),
+                exam_type: EXAM_TYPES.FULL_TEST,
+            },
+            true,
+            "test_id"
+        );
+
+        return Math.round((countJoinTest / countTest) * 100);
     }
 }
 

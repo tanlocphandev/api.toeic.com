@@ -63,10 +63,23 @@ class TestController {
     }
 
     async getTestWithYears(req, res) {
-        const response = await TesService.getTestWithYears();
+        const { userId } = req.user;
+
+        const response = await TesService.getTestWithYears(userId);
 
         return new OK({
             message: "Find test successfully",
+            metadata: response,
+        }).send(res);
+    }
+
+    async percentJoinExamTest(req, res) {
+        const { userId } = req.user;
+
+        const response = await TesService.percentJoinExamTest(userId);
+
+        return new OK({
+            message: "get percent join successfully",
             metadata: response,
         }).send(res);
     }

@@ -55,9 +55,9 @@ class BaseModel {
             id,
         ]);
 
-        console.log("====================================");
-        console.log(`sql update by id`, sql);
-        console.log("====================================");
+        // console.log("====================================");
+        // console.log(`sql update by id`, sql);
+        // console.log("====================================");
 
         const result = await this.db.execute(sql);
 
@@ -81,7 +81,7 @@ class BaseModel {
 
         const sql = format(`UPDATE ?? SET ? ${query}`, [this.tableName, data, ...value]);
 
-        console.log(`sql update many`, sql);
+        // console.log(`sql update many`, sql);
 
         return await this.db.execute(sql);
     }
@@ -103,7 +103,7 @@ class BaseModel {
 
         const sql = format(`DELETE FROM ?? ${query}`, [this.tableName, ...value]);
 
-        console.log(`sql delete many`, sql);
+        // console.log(`sql delete many`, sql);
 
         return await this.db.execute(sql);
     }
@@ -125,7 +125,7 @@ class BaseModel {
 
         const sql = format(query, params);
 
-        console.log({ sql });
+        // console.log({ sql });
 
         const result = await this.db.query(sql);
 
@@ -190,10 +190,14 @@ class BaseModel {
         return result;
     }
 
-    async count(conditions) {
+    async count(conditions, distinct = false, column = "*") {
         const { query, value } = QueryHelper.buildWhereClause(conditions);
 
-        const sql = format(`SELECT COUNT(*) as count FROM ?? ${query}`, [this.tableName, ...value]);
+        const sql = format(`SELECT COUNT(?) as count FROM ?? ${query}`, [
+            distinct ? raw(`DISTINCT ${column}`) : raw(column),
+            this.tableName,
+            ...value,
+        ]);
 
         const [result] = await this.db.query(sql);
 
@@ -209,19 +213,50 @@ class BaseModel {
             ...value,
         ]);
 
-        console.log(`sql sum`, { sql });
-
         const [result] = await this.db.query(sql);
 
         return result.sum || 0;
     }
 
+    async maxRow({ conditions, column, idColumn, tableName = this.tableName }) {
+        const { query, value } = QueryHelper.buildWhereClause(conditions);
+
+        const querySql = `
+            SELECT a.*  
+            FROM ?? a
+            INNER JOIN (
+                SELECT ??, MAX(??) as max_row 
+                FROM ?? ${query} 
+                GROUP BY ?? ORDER BY max_row DESC 
+                LIMIT 1
+            ) b ON ? = ? AND ? = b.max_row
+        `;
+
+        const sql = format(querySql, [
+            tableName,
+            idColumn,
+            column,
+            tableName,
+            ...value,
+            idColumn,
+            raw(`a.${idColumn}`),
+            raw(`b.${idColumn}`),
+            raw(`a.${column}`),
+        ]);
+
+        // console.log({ sql });
+
+        const [result] = await this.db.query(sql);
+
+        return result;
+    }
+
     async callProcedure({ procedureName, params = [] }) {
         const sql = format(`CALL ?? (?)`, [procedureName, params]);
 
-        console.log("====================================");
-        console.log(`callProcedure::`, sql);
-        console.log("====================================");
+        // console.log("====================================");
+        // console.log(`callProcedure::`, sql);
+        // console.log("====================================");
         const [results] = await this.db.query(sql);
         return results;
     }

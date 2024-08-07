@@ -5,8 +5,10 @@ const TestPartService = require("../services/testPart.service");
 
 class TestPartController {
     async getByPartId(req, res) {
+        const { userId } = req.user;
         const { partId } = req.params;
-        const result = await TestPartService.getByPartId(partId);
+        const questionSlug = req.query.slug;
+        const result = await TestPartService.getByPartId({ partId, userId, questionSlug });
         return new OK({ message: "Get test part successfully", metadata: result }).send(res);
     }
 
