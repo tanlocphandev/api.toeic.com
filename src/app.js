@@ -10,6 +10,8 @@ const corsConfig = require("./configs/cors.config");
 const compression = require("compression");
 const { logBody } = require("./middleware/logBody.middleware");
 
+// init;
+
 app.use(cors(corsConfig));
 app.use(compression());
 app.use(helmet());
