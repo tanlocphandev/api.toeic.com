@@ -15,7 +15,7 @@ const { logBody } = require("./middleware/logBody.middleware");
 app.use(cors(corsConfig));
 app.use(compression());
 app.use(helmet());
-app.use(morgan("dev"));
+app.use(morgan(process.env.NODE_ENV === "development" ? "dev" : "short"));
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 
