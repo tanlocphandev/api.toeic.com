@@ -25,7 +25,7 @@ DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `prod_get_max_question_correct_by_userId` (IN `userId` INT)   SELECT 
+CREATE PROCEDURE IF NOT EXISTS `prod_get_max_question_correct_by_userId` (IN `userId` INT)   SELECT 
 	DISTINCT ex.*, tes.test_name, tes.test_tag
 FROM 
 	exams ex
@@ -52,7 +52,7 @@ WHERE
     AND user_id = 1 
 GROUP BY ex.test_id$$
 
-CREATE DEFINER=`root`@`localhost` PROCEDURE `prod_get_role_grants` (IN `roleId_input` INT, IN `isSelectNotInRoleId_input` BOOLEAN)   IF(isSelectNotInRoleId_input = 1) then
+CREATE PROCEDURE IF NOT EXISTS `prod_get_role_grants` (IN `roleId_input` INT, IN `isSelectNotInRoleId_input` BOOLEAN)   IF(isSelectNotInRoleId_input = 1) then
     SELECT gr.grant_id, roleId_input as role_id, gr.grant_action, rs.resource_name as resource FROM grants gr JOIN resources rs ON gr.resource_id = rs.resource_id WHERE gr.grant_id NOT IN(SELECT ro_gr.grant_id FROM roles_grants ro_gr WHERE ro_gr.role_id = roleId_input) ORDER BY rs.resource_name;
 ELSE 
 	SELECT gr.grant_id, roleId_input as role_id, gr.grant_action, rs.resource_name as resource FROM grants gr JOIN resources rs ON gr.resource_id = rs.resource_id WHERE gr.grant_id IN(SELECT ro_gr.grant_id FROM roles_grants ro_gr WHERE ro_gr.role_id = roleId_input) ORDER BY rs.resource_name;
@@ -1341,7 +1341,7 @@ CREATE TABLE `key_tokens` (
   `user_id` int(11) NOT NULL,
   `public_key` varchar(255) NOT NULL,
   `private_key` varchar(255) NOT NULL,
-  `refresh_token_used` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT '[]' CHECK (json_valid(`refresh_token_used`)),
+  `refresh_token_used` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT null CHECK (json_valid(`refresh_token_used`)),
   `refresh_token` varchar(255) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
