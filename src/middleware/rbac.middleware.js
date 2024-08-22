@@ -18,6 +18,10 @@ const grantAccess = (action, resource) => {
         const { role } = req.user;
         const roleList = await RbacService.getListRole();
 
+        console.log("====================================");
+        console.log(`roleList:::`, roleList);
+        console.log("====================================");
+
         rbac.setGrants(roleList);
 
         const permission = rbac.can(role)[action](resource);
