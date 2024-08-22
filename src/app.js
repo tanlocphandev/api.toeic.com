@@ -27,4 +27,8 @@ app.use(require("./routes"));
 app.use(catchNotFound);
 app.use(catchError);
 
+console.log("====================================");
+console.log(process.env);
+console.log("====================================");
+
 module.exports = app;
