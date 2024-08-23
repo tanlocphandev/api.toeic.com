@@ -1,7 +1,7 @@
 "use strict";
 
 const BaseModel = require("./base.model");
-const { generateRandomString } = require("../utils");
+const { generateRandomString, randomNumber } = require("../utils");
 const TimestampModel = require("./common/timestamp.model");
 
 class KeyTokenDao extends TimestampModel {
@@ -40,7 +40,7 @@ class KeyTokenModel extends BaseModel {
 
         if (!result) {
             if (options.upsert) {
-                const keyId = generateRandomString(16);
+                const keyId = randomNumber();
 
                 const insert = { ...update, ...filter, key_id: keyId };
 
