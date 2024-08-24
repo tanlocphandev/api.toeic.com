@@ -12,10 +12,6 @@ const { logBody } = require("./middleware/logBody.middleware");
 
 // init;
 
-console.log("====================================");
-console.log(`corsConfig:::`, corsConfig);
-console.log("====================================");
-
 app.use(cors(corsConfig));
 app.use(compression());
 app.use(helmet());
@@ -30,9 +26,5 @@ app.use(require("./routes"));
 
 app.use(catchNotFound);
 app.use(catchError);
-
-console.log("====================================");
-console.log(process.env);
-console.log("====================================");
 
 module.exports = app;

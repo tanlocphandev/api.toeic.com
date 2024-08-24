@@ -47,7 +47,7 @@ class NoteModel extends BaseModel {
         return new NoteDao(response);
     }
 
-    async findById(noteId) {
+    async findById(noteId, withInclude) {
         const response = await super.findOne({ note_id: noteId });
 
         if (!response) return null;

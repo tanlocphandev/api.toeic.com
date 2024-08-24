@@ -40,7 +40,7 @@ class KeyTokenModel extends BaseModel {
 
         if (!result) {
             if (options.upsert) {
-                const keyId = randomNumber();
+                const keyId = randomNumber(16);
 
                 const insert = { ...update, ...filter, key_id: keyId };
 

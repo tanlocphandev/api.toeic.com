@@ -7,3 +7,5 @@
 `Run server with: npm run dev`
 
 [Markdown Editor Link](https://editor-prod.vercel.app/)
+
+-   add node-cache

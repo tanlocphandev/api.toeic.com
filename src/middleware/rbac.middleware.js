@@ -4,6 +4,7 @@ const rbac = require("./role.middleware");
 const asyncHandler = require("../helpers/asyncHandler.helper");
 const { AuthFailureError } = require("../core/error.response");
 const RbacService = require("../services/rbac.service");
+const nodeCache = require("../libs/node-cache.lib");
 
 /**
  * Grants access to a resource based on the user's role and the requested action.
@@ -16,11 +17,18 @@ const RbacService = require("../services/rbac.service");
 const grantAccess = (action, resource) => {
     return asyncHandler(async (req, _, next) => {
         const { role } = req.user;
-        const roleList = await RbacService.getListRole();
 
-        console.log("====================================");
-        console.log(`roleList:::`, roleList);
-        console.log("====================================");
+        let roleList = [];
+
+        // Check if exist cache
+        if (nodeCache.has("rbacLists")) {
+            // Get cache
+            roleList = nodeCache.get("rbacLists");
+        } else {
+            // Set cache
+            roleList = await RbacService.getListRole();
+            nodeCache.set("rbacLists", roleList, 60 * 60 * 24 * 7); // 7 day
+        }
 
         rbac.setGrants(roleList);
 

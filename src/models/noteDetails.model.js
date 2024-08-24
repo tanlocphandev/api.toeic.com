@@ -2,7 +2,6 @@
 
 const QueryHelper = require("../helpers/query.helper");
 const { filterPropOutsideInstance } = require("../utils");
-const { noteModel } = require("./note.model");
 const BaseModel = require("./base.model");
 const TimestampModel = require("./common/timestamp.model");
 
@@ -56,14 +55,20 @@ class NoteDetailsModel extends BaseModel {
     }
 
     async _findInclude(data) {
-        const note = await noteModel.findById(data.note_id);
+        const note = await super.findOne({ note_id: data.note_id }, null, "notes");
+
+        if (!note) return null;
+
         return { ...data, note };
     }
 
     async _findIncludes(data = []) {
         const response = await Promise.all(
             data.map(async (row) => {
-                const note = await noteModel.findById(row.note_id);
+                const note = await super.findOne({ note_id: row.note_id }, null, "notes");
+
+                if (!note) return null;
+
                 return { ...row, note };
             })
         );

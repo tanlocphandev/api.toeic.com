@@ -170,11 +170,11 @@ class BaseModel {
         };
     }
 
-    async findOne(conditions, order = null) {
+    async findOne(conditions, order = null, tableName = this.tableName) {
         const { query, value } = QueryHelper.buildWhereClause(conditions);
 
         let sql = `SELECT * FROM ?? ${query}`;
-        const params = [this.tableName, ...value];
+        const params = [tableName, ...value];
 
         if (order) {
             sql += ` ORDER BY ?? ${order.value}`;
