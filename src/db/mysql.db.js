@@ -1,19 +1,21 @@
 "use strict";
 
-const mysql = require("mysql2/promise");
+const mysql = require("mysql2");
 const DB_CONFIGS = require("../configs/db.config");
 const { ServerError } = require("../core/error.response");
 
 class Database {
     constructor({ host, port, user, password, database, connectionLimit }) {
-        this.pool = mysql.createPool({
-            host,
-            port,
-            user,
-            password,
-            database,
-            connectionLimit,
-        });
+        this.pool = mysql
+            .createPool({
+                host,
+                port,
+                user,
+                password,
+                database,
+                connectionLimit,
+            })
+            .promise();
     }
 
     getPool() {
