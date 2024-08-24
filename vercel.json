@@ -13,7 +13,8 @@
         },
         {
             "src": "/api/v1/(.*)",
-            "dest": "/server.js"
+            "dest": "/server.js",
+            "maxDuration": 60
         }
     ]
 }
